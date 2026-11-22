@@ -1,0 +1,35 @@
+PageQuery:
+  name: page
+  in: query
+  description: Номер страницы
+  schema:
+    type: integer
+    minimum: 1
+    default: 1
+
+LimitQuery:
+  name: limit
+  in: query
+  description: Размер страницы
+  schema:
+    type: integer
+    minimum: 1
+    maximum: 100
+    default: 20
+
+SortQuery:
+  name: sort
+  in: query
+  description: >
+    Сортировка в виде JSON-строки, например `{"title":"asc"}` или `{"createdAt":"desc"}`.
+  schema:
+    type: string
+    example: '{"title":"asc"}'
+
+IdPath:
+  name: id
+  in: path
+  required: true
+  schema:
+    type: string
+    format: uuid

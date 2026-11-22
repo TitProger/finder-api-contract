@@ -1,0 +1,48 @@
+Unauthorized:
+  description: Требуется авторизация
+  content:
+    application/json:
+      schema:
+        $ref: '../schemas/common.yaml#/ApiResponse'
+
+Forbidden:
+  description: Недостаточно прав
+  content:
+    application/json:
+      schema:
+        $ref: '../schemas/common.yaml#/ApiResponse'
+
+NotFound:
+  description: Ресурс не найден
+  content:
+    application/json:
+      schema:
+        $ref: '../schemas/common.yaml#/ApiResponse'
+
+BadRequest:
+  description: Некорректный запрос
+  content:
+    application/json:
+      schema:
+        $ref: '../schemas/common.yaml#/ApiResponse'
+
+Conflict:
+  description: Конфликт данных
+  content:
+    application/json:
+      schema:
+        $ref: '../schemas/common.yaml#/ApiResponse'
+
+Unprocessable:
+  description: Категория досье не совпала с категорией заявки
+  content:
+    application/json:
+      schema:
+        $ref: '../schemas/common.yaml#/ApiResponse'
+
+InternalError:
+  description: Внутренняя ошибка сервера
+  content:
+    application/json:
+      schema:
+        $ref: '../schemas/common.yaml#/ApiResponse'

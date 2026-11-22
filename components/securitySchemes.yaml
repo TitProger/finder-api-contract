@@ -1,0 +1,9 @@
+bearerAuth:
+  type: http
+  scheme: bearer
+  description: Статический ADMIN_API_TOKEN.
+
+researchIngestToken:
+  type: http
+  scheme: bearer
+  description: Секрет RESEARCH_INGEST_TOKEN. Не путать с токеном админки.

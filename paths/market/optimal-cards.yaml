@@ -1,0 +1,127 @@
+collection:
+  post:
+    operationId: createOptimalCard
+    tags: [optimal-cards]
+    summary: Создать оптимальную карточку
+    description: >
+      Только ADMIN. Карточка создаётся вручную или из оффера, если передан offerId.
+      Оффер уже должен быть в базе: парсеры и research_run этот вызов не запускает.
+      Флаг isLive по умолчанию выключен. Включение снимает флаг с другой живой строки
+      того же товара и того же диапазона количества. Снятая строка остаётся.
+    security:
+      - bearerAuth: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../../components/schemas/market/optimal-card.yaml#/CreateOptimalCardRequest'
+    responses:
+      '200':
+        description: Созданная карточка
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '../../components/schemas/common.yaml#/ApiResponse'
+                - type: object
+                  properties:
+                    data:
+                      $ref: '../../components/schemas/market/optimal-card.yaml#/OptimalCard'
+      '400':
+        $ref: '../../components/responses/errors.yaml#/BadRequest'
+      '401':
+        $ref: '../../components/responses/errors.yaml#/Unauthorized'
+      '403':
+        $ref: '../../components/responses/errors.yaml#/Forbidden'
+      '404':
+        $ref: '../../components/responses/errors.yaml#/NotFound'
+      '409':
+        $ref: '../../components/responses/errors.yaml#/Conflict'
+      '500':
+        $ref: '../../components/responses/errors.yaml#/InternalError'
+
+byId:
+  get:
+    operationId: getOptimalCardById
+    tags: [optimal-cards]
+    summary: Прочитать оптимальную карточку
+    description: Только ADMIN. Отдаёт и живую, и снятую строку.
+    security:
+      - bearerAuth: []
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    responses:
+      '200':
+        description: Карточка
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '../../components/schemas/common.yaml#/ApiResponse'
+                - type: object
+                  properties:
+                    data:
+                      $ref: '../../components/schemas/market/optimal-card.yaml#/OptimalCard'
+      '400':
+        $ref: '../../components/responses/errors.yaml#/BadRequest'
+      '401':
+        $ref: '../../components/responses/errors.yaml#/Unauthorized'
+      '403':
+        $ref: '../../components/responses/errors.yaml#/Forbidden'
+      '404':
+        $ref: '../../components/responses/errors.yaml#/NotFound'
+      '500':
+        $ref: '../../components/responses/errors.yaml#/InternalError'
+  patch:
+    operationId: updateOptimalCard
+    tags: [optimal-cards]
+    summary: Править оптимальную карточку
+    description: >
+      Только ADMIN. Меняет переданные поля. Повторное isLive=true на тот же товар
+      и тот же диапазон снимает флаг с предыдущей строки, саму строку не удаляет.
+      research_run не создаётся.
+    security:
+      - bearerAuth: []
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../../components/schemas/market/optimal-card.yaml#/UpdateOptimalCardRequest'
+    responses:
+      '200':
+        description: Карточка после правки
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '../../components/schemas/common.yaml#/ApiResponse'
+                - type: object
+                  properties:
+                    data:
+                      $ref: '../../components/schemas/market/optimal-card.yaml#/OptimalCard'
+      '400':
+        $ref: '../../components/responses/errors.yaml#/BadRequest'
+      '401':
+        $ref: '../../components/responses/errors.yaml#/Unauthorized'
+      '403':
+        $ref: '../../components/responses/errors.yaml#/Forbidden'
+      '404':
+        $ref: '../../components/responses/errors.yaml#/NotFound'
+      '409':
+        $ref: '../../components/responses/errors.yaml#/Conflict'
+      '500':
+        $ref: '../../components/responses/errors.yaml#/InternalError'

@@ -1,0 +1,355 @@
+InquiryStatus:
+  type: string
+  enum:
+    - DRAFT
+    - AWAITING_CATEGORY
+    - COLLECTING_ANSWERS
+    - SERVED_FROM_DATABASE
+    - RESEARCHING
+    - DOSSIER_WITH_ADMIN
+    - LIMIT_EXCEEDED
+    - CLOSED
+
+ClassificationMatch:
+  type: string
+  description: >
+    Чем кандидат попал в оценку.
+    exact_phrase — точное совпадение фразы.
+    keyword — совпадение по ключевым словам.
+    llm — классификация через LLM.
+  enum: [exact_phrase, keyword, llm]
+
+ClassificationOutcome:
+  type: string
+  description: >
+    exact_phrase — одна активная категория по точной фразе.
+    keyword_match — совпадение по ключевым словам.
+    llm_confident — LLM уверенно выбрала категорию.
+    ambiguous_phrase — та же фраза в нескольких категориях.
+    ambiguous_keyword — ключевые слова совпали с несколькими категориями.
+    llm_low_confidence — LLM не уверена в выборе.
+    no_match — фраза, ключевые слова и LLM категорию не выбрали.
+  enum:
+    - exact_phrase
+    - keyword_match
+    - llm_confident
+    - ambiguous_phrase
+    - ambiguous_keyword
+    - llm_low_confidence
+    - no_match
+
+ClassificationCandidate:
+  type: object
+  required: [categoryId, categoryName, score, matchedBy]
+  properties:
+    categoryId:
+      type: string
+      format: uuid
+    categoryName:
+      type: string
+    score:
+      type: number
+      description: 1 у точной фразы и у уверенного LLM. У ключевых слов — доля совпадения.
+    matchedBy:
+      $ref: '#/ClassificationMatch'
+
+ClassificationScores:
+  type: object
+  required: [outcome, stub, candidates]
+  properties:
+    outcome:
+      $ref: '#/ClassificationOutcome'
+    stub:
+      type: boolean
+      description: Всегда false. Отдельной заглушки классификатора больше нет.
+    candidates:
+      type: array
+      maxItems: 5
+      items:
+        $ref: '#/ClassificationCandidate'
+
+InquiryQuestion:
+  type: object
+  required: [id, categoryId, prompt, answerType, isRequired, sortOrder, createdAt]
+  description: Вопрос, который надо задать клиенту. База категории и, если выбран, один пакет.
+  properties:
+    id:
+      type: string
+      format: uuid
+    categoryId:
+      type: string
+      format: uuid
+    questionPackId:
+      type: [string, 'null']
+      format: uuid
+      description: null — базовый вопрос категории
+    prompt:
+      type: string
+    answerType:
+      $ref: '../category/category.yaml#/QuestionAnswerType'
+    choices:
+      description: Варианты для SINGLE_CHOICE / MULTI_CHOICE; иначе null
+      oneOf:
+        - type: object
+        - type: array
+        - type: 'null'
+    isRequired:
+      type: boolean
+    sortOrder:
+      type: integer
+    createdAt:
+      type: string
+      format: date-time
+    updatedAt:
+      type: [string, 'null']
+      format: date-time
+
+Inquiry:
+  type: object
+  required:
+    - id
+    - clientUserId
+    - telegramUserId
+    - status
+    - rawText
+    - photoUrls
+    - categoryId
+    - questionPackId
+    - isPaused
+    - pauseReason
+    - assignedByUserId
+    - classificationScores
+    - questions
+    - optimalCardId
+    - optimalCard
+    - createdAt
+    - updatedAt
+  properties:
+    id:
+      type: string
+      format: uuid
+    clientUserId:
+      type: string
+      format: uuid
+    telegramUserId:
+      type: integer
+      minimum: 1
+      description: Telegram user id клиента. Вход, не отдельная регистрация.
+    status:
+      $ref: '#/InquiryStatus'
+    rawText:
+      type: string
+      description: Текст клиента. При назначении категории эта фраза дописывается в category_phrase.
+    photoUrls:
+      type: array
+      items:
+        type: string
+      description: >
+        Telegram file_id фото, которое клиент приложил к тексту.
+        Пустой массив, если фото нет. POST /inquiries фото не принимает.
+        Бот пишет file_id сюда и пересылает фото админу. Это не публичная ссылка.
+    categoryId:
+      type: [string, 'null']
+      format: uuid
+      description: null, пока классификатор сомневается или фраза неоднозначна.
+    questionPackId:
+      type: [string, 'null']
+      format: uuid
+      description: >
+        Один подходящий пакет. null — только базовые вопросы категории.
+        Пакет выбирается точным совпадением текста с code или title.
+        Сомнение между пакетами паузу не ставит.
+    isPaused:
+      type: boolean
+      description: true — ресерч не стартует. research_run не создаётся.
+    pauseReason:
+      type: [string, 'null']
+    assignedByUserId:
+      type: [string, 'null']
+      format: uuid
+      description: Админ, который назначил категорию вручную. null, если категорию выбрала точная фраза.
+    classificationScores:
+      anyOf:
+        - type: 'null'
+        - $ref: '#/ClassificationScores'
+    questions:
+      type: array
+      items:
+        $ref: '#/InquiryQuestion'
+      description: >
+        Пусто на паузе. Иначе базовые вопросы категории и вопросы выбранного пакета.
+        Вопросы других пакетов не отдаются.
+    optimalCardId:
+      type: [string, 'null']
+      format: uuid
+      description: >
+        Живая карточка, которую отдали из базы. null, пока ответов не хватает
+        или подходящей живой карточки нет. research_run при этом не создаётся.
+    optimalCard:
+      description: >
+        Та же карточка целиком. Пусто, если заявка ещё не в статусе «ответ из базы».
+      anyOf:
+        - type: 'null'
+        - $ref: '../market/optimal-card.yaml#/OptimalCard'
+    createdAt:
+      type: string
+      format: date-time
+    updatedAt:
+      type: [string, 'null']
+      format: date-time
+
+CreateInquiryRequest:
+  type: object
+  required: [telegramUserId, text]
+  additionalProperties: false
+  properties:
+    telegramUserId:
+      type: integer
+      minimum: 1
+      description: Telegram user id. Если клиента ещё нет, создаётся роль CLIENT.
+    text:
+      type: string
+      minLength: 1
+      maxLength: 8000
+      description: Свободный текст заявки.
+
+AssignCategoryRequest:
+  type: object
+  required: [categoryId]
+  additionalProperties: false
+  properties:
+    categoryId:
+      type: string
+      format: uuid
+      description: Активная категория. Фраза клиента дописывается в неё.
+
+CreateCategoryAndAssignRequest:
+  type: object
+  required: [name, description]
+  additionalProperties: false
+  properties:
+    name:
+      type: string
+      minLength: 1
+      maxLength: 255
+    description:
+      type: string
+      minLength: 1
+      description: Текст категории. Цену не класть.
+
+ResearchRerunResult:
+  type: object
+  required: [inquiryId, runId, inquiryStatus, runStatus]
+  additionalProperties: false
+  properties:
+    inquiryId:
+      type: string
+      format: uuid
+    runId:
+      type: string
+      format: uuid
+    inquiryStatus:
+      $ref: '#/InquiryStatus'
+    runStatus:
+      type: string
+      enum: [PENDING, RUNNING, SUCCEEDED, FAILED, FAILED_TO_START, STALE, CANCELLED]
+
+SaveInquiryEconomicsRequest:
+  type: object
+  additionalProperties: false
+  required: [deliveryPerUnit, dutyPercent, markupPercent]
+  properties:
+    deliveryPerUnit:
+      type: number
+      minimum: 0
+      description: Доставка за одну единицу, в рублях.
+    dutyPercent:
+      type: number
+      minimum: 0
+      maximum: 1000
+      description: Пошлина в процентах от цены товара.
+    otherCost:
+      type: number
+      minimum: 0
+      description: Прочие затраты за единицу, в рублях. Пусто значит 0.
+    markupPercent:
+      type: number
+      minimum: 0
+      maximum: 1000
+      description: Наценка в процентах после доставки, пошлины и прочих.
+
+InquiryEconomics:
+  type: object
+  additionalProperties: false
+  required: [inquiryId, quotes, fxFallback, economics, landed]
+  properties:
+    inquiryId:
+      type: string
+      format: uuid
+    quotes:
+      type: array
+      items:
+        $ref: '#/LayerQuote'
+    fxFallback:
+      type: boolean
+      description: true, если хотя бы один слой взял запасной курс.
+    economics:
+      anyOf:
+        - type: 'null'
+        - $ref: '#/SaveInquiryEconomicsRequest'
+    landed:
+      type: array
+      description: Пустой, пока менеджер не ввёл затраты или нет заводской цены.
+      items:
+        $ref: '#/LandedUnit'
+
+LayerQuote:
+  type: object
+  additionalProperties: false
+  required: [layer, unit, count, minRub, medianRub, fxUsed]
+  properties:
+    layer:
+      type: string
+      enum: [FACTORY, CHINA_OPEN, RUSSIA_RETAIL, RUSSIA_WHOLESALE]
+    unit:
+      type: string
+    count:
+      type: integer
+      minimum: 1
+    minRub:
+      type: number
+    medianRub:
+      type: number
+    fxUsed:
+      type: string
+      enum: [dossier, fallback, rub]
+
+LandedUnit:
+  type: object
+  additionalProperties: false
+  required: [unit, baseRub, deliveryPerUnit, dutyAmount, otherCost, markupAmount, landedRub, retailRub, deltaRub, verdict, fxUsed]
+  properties:
+    unit:
+      type: string
+    baseRub:
+      type: number
+    deliveryPerUnit:
+      type: number
+    dutyAmount:
+      type: number
+    otherCost:
+      type: number
+    markupAmount:
+      type: number
+    landedRub:
+      type: number
+    retailRub:
+      type: [number, 'null']
+    deltaRub:
+      type: [number, 'null']
+    verdict:
+      type: [string, 'null']
+      enum: ['выгодно', 'не выгодно', null]
+    fxUsed:
+      type: string
+      enum: [dossier, fallback, rub]

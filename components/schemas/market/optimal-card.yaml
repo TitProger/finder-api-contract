@@ -1,0 +1,255 @@
+ContactChannel:
+  type: string
+  description: Канал контакта на оптимальной карточке.
+  enum: [PHONE, EMAIL, WECHAT, TELEGRAM, OTHER]
+
+AttributeValue:
+  description: Значение обязательного ответа, как его хранит заявка.
+  oneOf:
+    - type: string
+    - type: number
+    - type: boolean
+    - type: array
+      items:
+        type: string
+
+OptimalCard:
+  type: object
+  required:
+    - id
+    - categoryId
+    - canonicalProductId
+    - nameRu
+    - nameZh
+    - qtyMin
+    - qtyMax
+    - quantityQuestionId
+    - isLive
+    - offerId
+    - companyId
+    - storefrontId
+    - price
+    - currency
+    - contactValue
+    - contactChannel
+    - contactUrl
+    - contactAdminEntered
+    - contactEnteredAt
+    - productAttributes
+    - reasonNote
+    - markedLiveByUserId
+    - markedLiveAt
+    - expiresAt
+    - createdAt
+    - updatedAt
+  properties:
+    id:
+      type: string
+      format: uuid
+    categoryId:
+      type: string
+      format: uuid
+    canonicalProductId:
+      type: string
+      format: uuid
+      description: Товар карточки. Повторная живая снимает флаг у другой строки с тем же товаром и тем же диапазоном.
+    nameRu:
+      type: string
+    nameZh:
+      type: [string, 'null']
+    qtyMin:
+      type: number
+      minimum: 0
+      description: Нижняя граница количества, включительно.
+    qtyMax:
+      type: number
+      minimum: 0
+      description: Верхняя граница количества, включительно.
+    quantityQuestionId:
+      type: string
+      format: uuid
+      description: Обязательный вопрос типа NUMBER. Его число должно попасть в диапазон.
+    isLive:
+      type: boolean
+      description: Живая карточка. На один товар и один диапазон живая только одна. Снятая строка остаётся.
+    offerId:
+      type: [string, 'null']
+      format: uuid
+      description: Оффер, из которого собрали карточку. Пусто, если админ вписал её вручную.
+    companyId:
+      type: [string, 'null']
+      format: uuid
+    storefrontId:
+      type: [string, 'null']
+      format: uuid
+    price:
+      type: [number, 'null']
+      minimum: 0
+    currency:
+      type: [string, 'null']
+      description: Трёхбуквенный код валюты, если цена есть.
+    contactValue:
+      type: [string, 'null']
+    contactChannel:
+      anyOf:
+        - type: 'null'
+        - $ref: '#/ContactChannel'
+    contactUrl:
+      type: [string, 'null']
+      description: Страница контакта. Пусто, если контакт вписан админом.
+    contactAdminEntered:
+      type: boolean
+      description: true — контакт вписан админом, без url.
+    contactEnteredAt:
+      type: [string, 'null']
+      format: date-time
+    productAttributes:
+      type: object
+      description: >
+        Обязательные ответы кроме объёма. Ключ — id вопроса.
+        Набор ключей должен совпасть с обязательными ответами заявки, кроме вопроса объёма.
+      additionalProperties:
+        $ref: '#/AttributeValue'
+    reasonNote:
+      type: [string, 'null']
+    markedLiveByUserId:
+      type: [string, 'null']
+      format: uuid
+    markedLiveAt:
+      type: [string, 'null']
+      format: date-time
+    expiresAt:
+      type: [string, 'null']
+      format: date-time
+      description: Пока эта дата в будущем, карточку можно отдать из базы. Если срок не задан при создании — 30 дней.
+    createdAt:
+      type: string
+      format: date-time
+    updatedAt:
+      type: [string, 'null']
+      format: date-time
+
+CreateOptimalCardRequest:
+  type: object
+  additionalProperties: false
+  required: [categoryId, qtyMin, qtyMax, quantityQuestionId, productAttributes]
+  properties:
+    categoryId:
+      type: string
+      format: uuid
+    offerId:
+      type: [string, 'null']
+      format: uuid
+      description: >
+        Если задан, карточка собирается из оффера: цена, валюта, компания, витрина и url страницы.
+        Явно переданные поля заменяют снятые с оффера. Парсер не вызывается.
+    canonicalProductId:
+      type: [string, 'null']
+      format: uuid
+      description: Уже существующий товар этой категории. Иначе товар создаётся из nameRu.
+    nameRu:
+      type: string
+      minLength: 1
+      maxLength: 512
+      description: Имя товара. Обязательно, когда своего товара ещё нет ни в запросе, ни в оффере.
+    nameZh:
+      type: [string, 'null']
+      maxLength: 512
+    qtyMin:
+      type: number
+      minimum: 0
+    qtyMax:
+      type: number
+      minimum: 0
+    quantityQuestionId:
+      type: string
+      format: uuid
+    productAttributes:
+      type: object
+      additionalProperties:
+        $ref: '#/AttributeValue'
+    isLive:
+      type: boolean
+      default: false
+      description: true снимает флаг с другой живой строки того же товара и того же диапазона. Строка остаётся.
+    price:
+      type: [number, 'null']
+      minimum: 0
+    currency:
+      type: [string, 'null']
+      minLength: 3
+      maxLength: 3
+    contactValue:
+      type: [string, 'null']
+      maxLength: 512
+    contactChannel:
+      anyOf:
+        - type: 'null'
+        - $ref: '#/ContactChannel'
+    contactUrl:
+      type: [string, 'null']
+      maxLength: 2048
+    contactAdminEntered:
+      type: boolean
+      description: true очищает url. Если url пустой, а контакт есть, флаг всё равно становится true.
+    reasonNote:
+      type: [string, 'null']
+    expiresAt:
+      type: [string, 'null']
+      format: date-time
+      description: Пусто или null при создании — срок 30 дней от текущего момента.
+
+UpdateOptimalCardRequest:
+  type: object
+  additionalProperties: false
+  description: Пустые поля не меняют карточку. null в сроке снова ставит 30 дней.
+  properties:
+    canonicalProductId:
+      type: [string, 'null']
+      format: uuid
+    nameRu:
+      type: string
+      minLength: 1
+      maxLength: 512
+    nameZh:
+      type: [string, 'null']
+      maxLength: 512
+    qtyMin:
+      type: number
+      minimum: 0
+    qtyMax:
+      type: number
+      minimum: 0
+    quantityQuestionId:
+      type: string
+      format: uuid
+    productAttributes:
+      type: object
+      additionalProperties:
+        $ref: '#/AttributeValue'
+    isLive:
+      type: boolean
+    price:
+      type: [number, 'null']
+      minimum: 0
+    currency:
+      type: [string, 'null']
+      minLength: 3
+      maxLength: 3
+    contactValue:
+      type: [string, 'null']
+      maxLength: 512
+    contactChannel:
+      anyOf:
+        - type: 'null'
+        - $ref: '#/ContactChannel'
+    contactUrl:
+      type: [string, 'null']
+      maxLength: 2048
+    contactAdminEntered:
+      type: boolean
+    reasonNote:
+      type: [string, 'null']
+    expiresAt:
+      type: [string, 'null']
+      format: date-time

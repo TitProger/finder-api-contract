@@ -1,0 +1,355 @@
+CategoryStatus:
+  type: string
+  enum: [ACTIVE, ARCHIVED]
+
+QuestionAnswerType:
+  type: string
+  enum: [TEXT, NUMBER, BOOLEAN, SINGLE_CHOICE, MULTI_CHOICE]
+
+SiteRole:
+  type: string
+  enum: [FACTORY_CONTACT, CHINA_OPEN_PRICE, RUSSIA_RETAIL, RUSSIA_WHOLESALE]
+
+CategoryPhrase:
+  type: object
+  required: [id, categoryId, phrase, createdAt]
+  properties:
+    id:
+      type: string
+      format: uuid
+    categoryId:
+      type: string
+      format: uuid
+    phrase:
+      type: string
+    createdAt:
+      type: string
+      format: date-time
+    updatedAt:
+      type: [string, 'null']
+      format: date-time
+
+QuestionPack:
+  type: object
+  required: [id, categoryId, code, title, sortOrder, isActive, createdAt]
+  properties:
+    id:
+      type: string
+      format: uuid
+    categoryId:
+      type: string
+      format: uuid
+    code:
+      type: string
+    title:
+      type: string
+    description:
+      type: [string, 'null']
+    sortOrder:
+      type: integer
+    isActive:
+      type: boolean
+    createdAt:
+      type: string
+      format: date-time
+    updatedAt:
+      type: [string, 'null']
+      format: date-time
+
+CategoryQuestion:
+  type: object
+  required: [id, categoryId, prompt, answerType, isRequired, sortOrder, createdAt]
+  properties:
+    id:
+      type: string
+      format: uuid
+    categoryId:
+      type: string
+      format: uuid
+    questionPackId:
+      type: [string, 'null']
+      format: uuid
+      description: null = базовый вопрос категории
+    prompt:
+      type: string
+    answerType:
+      $ref: '#/QuestionAnswerType'
+    choices:
+      description: Варианты для SINGLE_CHOICE / MULTI_CHOICE; иначе null
+      oneOf:
+        - type: object
+        - type: array
+        - type: 'null'
+    isRequired:
+      type: boolean
+    sortOrder:
+      type: integer
+    createdAt:
+      type: string
+      format: date-time
+    updatedAt:
+      type: [string, 'null']
+      format: date-time
+
+CategorySite:
+  type: object
+  required: [id, categoryId, siteRole, name, priority, requiresLogin, isActive, createdAt]
+  properties:
+    id:
+      type: string
+      format: uuid
+    categoryId:
+      type: string
+      format: uuid
+    siteRole:
+      $ref: '#/SiteRole'
+    name:
+      type: string
+    baseUrl:
+      type: [string, 'null']
+    priority:
+      type: integer
+    requiresLogin:
+      type: boolean
+    queryTemplate:
+      type: [string, 'null']
+    excludeNote:
+      type: [string, 'null']
+    isActive:
+      type: boolean
+    createdAt:
+      type: string
+      format: date-time
+    updatedAt:
+      type: [string, 'null']
+      format: date-time
+
+Category:
+  type: object
+  required: [id, name, description, status, createdAt]
+  properties:
+    id:
+      type: string
+      format: uuid
+    name:
+      type: string
+    description:
+      type: string
+    status:
+      $ref: '#/CategoryStatus'
+    createdAt:
+      type: string
+      format: date-time
+    updatedAt:
+      type: [string, 'null']
+      format: date-time
+
+CategoryDetail:
+  allOf:
+    - $ref: '#/Category'
+    - type: object
+      required: [phrases, questionPacks, questions, sites]
+      properties:
+        phrases:
+          type: array
+          items:
+            $ref: '#/CategoryPhrase'
+        questionPacks:
+          type: array
+          items:
+            $ref: '#/QuestionPack'
+        questions:
+          type: array
+          items:
+            $ref: '#/CategoryQuestion'
+        sites:
+          type: array
+          items:
+            $ref: '#/CategorySite'
+
+CreateCategoryRequest:
+  type: object
+  required: [name, description]
+  additionalProperties: false
+  properties:
+    name:
+      type: string
+      minLength: 1
+      maxLength: 255
+    description:
+      type: string
+      minLength: 1
+    status:
+      $ref: '#/CategoryStatus'
+
+UpdateCategoryRequest:
+  type: object
+  additionalProperties: false
+  minProperties: 1
+  properties:
+    name:
+      type: string
+      minLength: 1
+      maxLength: 255
+    description:
+      type: string
+      minLength: 1
+    status:
+      $ref: '#/CategoryStatus'
+
+CreateCategoryPhraseRequest:
+  type: object
+  required: [phrase]
+  additionalProperties: false
+  properties:
+    phrase:
+      type: string
+      minLength: 1
+
+UpdateCategoryPhraseRequest:
+  type: object
+  additionalProperties: false
+  minProperties: 1
+  properties:
+    phrase:
+      type: string
+      minLength: 1
+
+CreateQuestionPackRequest:
+  type: object
+  required: [code, title]
+  additionalProperties: false
+  properties:
+    code:
+      type: string
+      minLength: 1
+      maxLength: 64
+    title:
+      type: string
+      minLength: 1
+      maxLength: 255
+    description:
+      type: [string, 'null']
+    sortOrder:
+      type: integer
+    isActive:
+      type: boolean
+
+UpdateQuestionPackRequest:
+  type: object
+  additionalProperties: false
+  minProperties: 1
+  properties:
+    code:
+      type: string
+      minLength: 1
+      maxLength: 64
+    title:
+      type: string
+      minLength: 1
+      maxLength: 255
+    description:
+      type: [string, 'null']
+    sortOrder:
+      type: integer
+    isActive:
+      type: boolean
+
+CreateCategoryQuestionRequest:
+  type: object
+  required: [prompt, answerType]
+  additionalProperties: false
+  properties:
+    questionPackId:
+      type: [string, 'null']
+      format: uuid
+      description: null или отсутствие = базовый вопрос
+    prompt:
+      type: string
+      minLength: 1
+    answerType:
+      $ref: '#/QuestionAnswerType'
+    choices:
+      description: Варианты ответа; иначе null
+      oneOf:
+        - type: object
+        - type: array
+        - type: 'null'
+    isRequired:
+      type: boolean
+    sortOrder:
+      type: integer
+
+UpdateCategoryQuestionRequest:
+  type: object
+  additionalProperties: false
+  minProperties: 1
+  properties:
+    questionPackId:
+      type: [string, 'null']
+      format: uuid
+    prompt:
+      type: string
+      minLength: 1
+    answerType:
+      $ref: '#/QuestionAnswerType'
+    choices:
+      description: Варианты ответа; иначе null
+      oneOf:
+        - type: object
+        - type: array
+        - type: 'null'
+    isRequired:
+      type: boolean
+    sortOrder:
+      type: integer
+
+CreateCategorySiteRequest:
+  type: object
+  required: [siteRole, name]
+  additionalProperties: false
+  properties:
+    siteRole:
+      $ref: '#/SiteRole'
+    name:
+      type: string
+      minLength: 1
+      maxLength: 255
+    baseUrl:
+      type: [string, 'null']
+      maxLength: 2048
+    priority:
+      type: integer
+    requiresLogin:
+      type: boolean
+    queryTemplate:
+      type: [string, 'null']
+    excludeNote:
+      type: [string, 'null']
+    isActive:
+      type: boolean
+
+UpdateCategorySiteRequest:
+  type: object
+  additionalProperties: false
+  minProperties: 1
+  properties:
+    siteRole:
+      $ref: '#/SiteRole'
+    name:
+      type: string
+      minLength: 1
+      maxLength: 255
+    baseUrl:
+      type: [string, 'null']
+      maxLength: 2048
+    priority:
+      type: integer
+    requiresLogin:
+      type: boolean
+    queryTemplate:
+      type: [string, 'null']
+    excludeNote:
+      type: [string, 'null']
+    isActive:
+      type: boolean

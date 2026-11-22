@@ -1,0 +1,64 @@
+ApiStatus:
+  type: string
+  enum: [success, error]
+
+PageInfo:
+  type: object
+  required: [page, limit, total]
+  properties:
+    page:
+      type: integer
+      minimum: 1
+    limit:
+      type: integer
+      minimum: 1
+    total:
+      type: integer
+      minimum: 0
+    totalPages:
+      type: integer
+      minimum: 0
+
+ApiError:
+  type: object
+  properties:
+    name:
+      type: string
+    message:
+      type: string
+    code:
+      oneOf:
+        - type: string
+        - type: integer
+    context: {}
+
+HealthData:
+  type: object
+  required: [status]
+  properties:
+    status:
+      type: string
+      example: ok
+
+ApiResponse:
+  type: object
+  required: [status, message, data]
+  description: >
+    Единая обёртка ответа.
+    При status=success: data — полезная нагрузка; error обычно отсутствует.
+    При status=error: data обычно null; error — детали ошибки.
+  properties:
+    status:
+      $ref: '#/ApiStatus'
+    message:
+      type: string
+      example: OK
+    data:
+      description: Полезная нагрузка или null при ошибке
+    page:
+      $ref: '#/PageInfo'
+    count: {}
+    requestId:
+      type: string
+    error:
+      $ref: '#/ApiError'

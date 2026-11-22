@@ -1,0 +1,217 @@
+DossierStatus:
+  type: string
+  enum: [complete, partial, failed]
+
+SiteStatus:
+  type: string
+  enum: [ok, captcha, login_required, blocked, empty, skipped]
+
+CompanyRole:
+  type: string
+  enum: [DIRECT_FACTORY, FACTORY_WITH_EXPORTER, TRADER, UNVERIFIED, DEALER_OR_LIST_PRICE]
+
+RegistryStatus:
+  type: string
+  enum: [active, revoked, unknown]
+
+DossierContactChannel:
+  type: string
+  enum: [phone, email, wechat, site]
+
+OfferLayer:
+  type: string
+  enum: [FACTORY, CHINA_OPEN, RUSSIA_RETAIL, RUSSIA_WHOLESALE]
+
+OfferUnit:
+  type: string
+  enum: [piece, set, car, m, m2, t]
+
+OfferCurrency:
+  type: string
+  enum: [CNY, USD, RUB]
+
+DossierSite:
+  type: object
+  additionalProperties: true
+  required: [site, status]
+  properties:
+    site:
+      type: string
+    status:
+      $ref: '#/SiteStatus'
+    url:
+      type: [string, 'null']
+    note:
+      type: [string, 'null']
+
+DossierContact:
+  type: object
+  additionalProperties: true
+  required: [channel, value]
+  properties:
+    channel:
+      $ref: '#/DossierContactChannel'
+    value:
+      type: string
+    source_url:
+      type: [string, 'null']
+
+DossierCompany:
+  type: object
+  additionalProperties: true
+  properties:
+    name_cn:
+      type: [string, 'null']
+    name:
+      type: [string, 'null']
+    uscc:
+      type: [string, 'null']
+      description: 18 символов единого социального кода или null
+    registry_status:
+      $ref: '#/RegistryStatus'
+    scope:
+      type: [string, 'null']
+    insured_count:
+      type: [integer, 'null']
+      minimum: 0
+    role:
+      $ref: '#/CompanyRole'
+    role_evidence:
+      type: array
+      items:
+        type: string
+    contacts:
+      type: array
+      items:
+        $ref: '#/DossierContact'
+
+DossierOffer:
+  type: object
+  additionalProperties: true
+  description: >
+    Оффер без source_url или без quote не отклоняет всё досье: он попадает в discarded.
+  properties:
+    company_ref:
+      type: [integer, 'null']
+      description: Индекс в companies[] или null
+    site:
+      type: [string, 'null']
+    source_url:
+      type: [string, 'null']
+    quote:
+      type: [string, 'null']
+    title:
+      type: [string, 'null']
+    price:
+      type: [number, 'null']
+      description: Хранится у оффера для админа. Клиенту не отдаётся.
+    currency:
+      $ref: '#/OfferCurrency'
+    unit:
+      $ref: '#/OfferUnit'
+    qty_from:
+      type: [number, 'null']
+    moq:
+      type: [number, 'null']
+    layer:
+      $ref: '#/OfferLayer'
+    captured_at:
+      type: [string, 'null']
+      format: date-time
+
+DossierFx:
+  type: object
+  additionalProperties: true
+  properties:
+    cny_rub:
+      type: number
+    usd_rub:
+      type: number
+    as_of:
+      type: string
+    source:
+      type: string
+
+ResearchDossier:
+  type: object
+  additionalProperties: true
+  required: [inquiry_id, run_id, status, category, sites, companies, offers]
+  properties:
+    inquiry_id:
+      type: string
+      format: uuid
+    run_id:
+      type: string
+      format: uuid
+    status:
+      $ref: '#/DossierStatus'
+    category:
+      type: string
+      description: code категории заявки
+    pack:
+      type: [string, 'null']
+    started_at:
+      type: [string, 'null']
+      format: date-time
+    finished_at:
+      type: [string, 'null']
+      format: date-time
+    sites:
+      type: array
+      items:
+        $ref: '#/DossierSite'
+    companies:
+      type: array
+      items:
+        $ref: '#/DossierCompany'
+    offers:
+      type: array
+      items:
+        $ref: '#/DossierOffer'
+    fx:
+      $ref: '#/DossierFx'
+    summary_ru:
+      type: [string, 'null']
+      description: Текст для админа, клиенту не отправляется
+
+DiscardedItem:
+  type: object
+  required: [path, reason]
+  properties:
+    path:
+      type: string
+    reason:
+      type: string
+
+ResearchIngestCounts:
+  type: object
+  required: [companies, offers, contacts]
+  properties:
+    companies:
+      type: integer
+    offers:
+      type: integer
+    contacts:
+      type: integer
+
+ResearchIngestResult:
+  type: object
+  description: Ответ приёма досье. Цен нет.
+  required: [research_run_id, inquiry_id, inquiry_status, duplicate, counts, discarded]
+  properties:
+    research_run_id:
+      type: string
+      format: uuid
+    inquiry_id:
+      type: string
+      format: uuid
+    inquiry_status:
+      $ref: '../inquiry/inquiry.yaml#/InquiryStatus'
+    duplicate:
+      type: boolean
+    counts:
+      $ref: '#/ResearchIngestCounts'
+    discarded:
+      type: array
+      items:
+        $ref: '#/DiscardedItem'

@@ -1,0 +1,45 @@
+ingest:
+  post:
+    operationId: ingestResearchDossier
+    tags: [research]
+    summary: Принять JSON-досье ресерча
+    description: >
+      Авторизация: Bearer RESEARCH_INGEST_TOKEN, сравнение через crypto.timingSafeEqual.
+      Токен админки этот вход не открывает.
+      Тот же run_id и то же тело → 200 и duplicate=true, строки не пишутся.
+      Тот же run_id и другое тело → 409 RUN_ID_REUSED.
+      Оффер без source_url или без quote и контакт без source_url попадают в discarded, остальное пишется.
+      status=partial и status=failed принимаются. Компания с уже известным USCC обновляется, а не даёт 409.
+      Успех переводит заявку в DOSSIER_WITH_ADMIN. Цены клиенту не отдаются.
+    security:
+      - researchIngestToken: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../../components/schemas/research/dossier.yaml#/ResearchDossier'
+    responses:
+      '200':
+        description: Досье принято или повтор того же тела
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '../../components/schemas/common.yaml#/ApiResponse'
+                - type: object
+                  properties:
+                    data:
+                      $ref: '../../components/schemas/research/dossier.yaml#/ResearchIngestResult'
+      '400':
+        $ref: '../../components/responses/errors.yaml#/BadRequest'
+      '401':
+        $ref: '../../components/responses/errors.yaml#/Unauthorized'
+      '404':
+        $ref: '../../components/responses/errors.yaml#/NotFound'
+      '409':
+        $ref: '../../components/responses/errors.yaml#/Conflict'
+      '422':
+        $ref: '../../components/responses/errors.yaml#/Unprocessable'
+      '500':
+        $ref: '../../components/responses/errors.yaml#/InternalError'

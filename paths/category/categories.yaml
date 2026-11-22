@@ -1,0 +1,446 @@
+listCreate:
+  post:
+    operationId: createCategory
+    security:
+      - bearerAuth: []
+    tags: [categories]
+    summary: Создать категорию
+    description: Только ADMIN. Без фраз, вопросов и площадок — их добавляют отдельными ручками.
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../../components/schemas/category/category.yaml#/CreateCategoryRequest'
+    responses:
+      '200':
+        description: Созданная категория
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '../../components/schemas/common.yaml#/ApiResponse'
+                - type: object
+                  properties:
+                    data:
+                      $ref: '../../components/schemas/category/category.yaml#/Category'
+      '400':
+        $ref: '../../components/responses/errors.yaml#/BadRequest'
+      '409':
+        $ref: '../../components/responses/errors.yaml#/Conflict'
+      '500':
+        $ref: '../../components/responses/errors.yaml#/InternalError'
+
+byId:
+  get:
+    operationId: getCategoryById
+    security:
+      - bearerAuth: []
+    tags: [categories]
+    summary: Категория с фразами, пакетами, вопросами и площадками
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    responses:
+      '200':
+        description: Категория целиком
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '../../components/schemas/common.yaml#/ApiResponse'
+                - type: object
+                  properties:
+                    data:
+                      $ref: '../../components/schemas/category/category.yaml#/CategoryDetail'
+      '404':
+        $ref: '../../components/responses/errors.yaml#/NotFound'
+      '500':
+        $ref: '../../components/responses/errors.yaml#/InternalError'
+  patch:
+    operationId: updateCategory
+    security:
+      - bearerAuth: []
+    tags: [categories]
+    summary: Править категорию
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../../components/schemas/category/category.yaml#/UpdateCategoryRequest'
+    responses:
+      '200':
+        description: Обновлённая категория
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '../../components/schemas/common.yaml#/ApiResponse'
+                - type: object
+                  properties:
+                    data:
+                      $ref: '../../components/schemas/category/category.yaml#/Category'
+      '400':
+        $ref: '../../components/responses/errors.yaml#/BadRequest'
+      '404':
+        $ref: '../../components/responses/errors.yaml#/NotFound'
+      '409':
+        $ref: '../../components/responses/errors.yaml#/Conflict'
+      '500':
+        $ref: '../../components/responses/errors.yaml#/InternalError'
+
+phrases:
+  post:
+    operationId: createCategoryPhrase
+    security:
+      - bearerAuth: []
+    tags: [categories]
+    summary: Добавить фразу категории
+    parameters:
+      - name: categoryId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../../components/schemas/category/category.yaml#/CreateCategoryPhraseRequest'
+    responses:
+      '200':
+        description: Фраза
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '../../components/schemas/common.yaml#/ApiResponse'
+                - type: object
+                  properties:
+                    data:
+                      $ref: '../../components/schemas/category/category.yaml#/CategoryPhrase'
+      '400':
+        $ref: '../../components/responses/errors.yaml#/BadRequest'
+      '404':
+        $ref: '../../components/responses/errors.yaml#/NotFound'
+      '409':
+        $ref: '../../components/responses/errors.yaml#/Conflict'
+      '500':
+        $ref: '../../components/responses/errors.yaml#/InternalError'
+
+phraseById:
+  patch:
+    operationId: updateCategoryPhrase
+    security:
+      - bearerAuth: []
+    tags: [categories]
+    summary: Править фразу
+    parameters:
+      - name: categoryId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../../components/schemas/category/category.yaml#/UpdateCategoryPhraseRequest'
+    responses:
+      '200':
+        description: Фраза
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '../../components/schemas/common.yaml#/ApiResponse'
+                - type: object
+                  properties:
+                    data:
+                      $ref: '../../components/schemas/category/category.yaml#/CategoryPhrase'
+      '400':
+        $ref: '../../components/responses/errors.yaml#/BadRequest'
+      '404':
+        $ref: '../../components/responses/errors.yaml#/NotFound'
+      '409':
+        $ref: '../../components/responses/errors.yaml#/Conflict'
+      '500':
+        $ref: '../../components/responses/errors.yaml#/InternalError'
+
+questionPacks:
+  post:
+    operationId: createQuestionPack
+    security:
+      - bearerAuth: []
+    tags: [categories]
+    summary: Добавить пакет вопросов
+    parameters:
+      - name: categoryId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../../components/schemas/category/category.yaml#/CreateQuestionPackRequest'
+    responses:
+      '200':
+        description: Пакет
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '../../components/schemas/common.yaml#/ApiResponse'
+                - type: object
+                  properties:
+                    data:
+                      $ref: '../../components/schemas/category/category.yaml#/QuestionPack'
+      '400':
+        $ref: '../../components/responses/errors.yaml#/BadRequest'
+      '404':
+        $ref: '../../components/responses/errors.yaml#/NotFound'
+      '409':
+        $ref: '../../components/responses/errors.yaml#/Conflict'
+      '500':
+        $ref: '../../components/responses/errors.yaml#/InternalError'
+
+questionPackById:
+  patch:
+    operationId: updateQuestionPack
+    security:
+      - bearerAuth: []
+    tags: [categories]
+    summary: Править пакет вопросов
+    parameters:
+      - name: categoryId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../../components/schemas/category/category.yaml#/UpdateQuestionPackRequest'
+    responses:
+      '200':
+        description: Пакет
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '../../components/schemas/common.yaml#/ApiResponse'
+                - type: object
+                  properties:
+                    data:
+                      $ref: '../../components/schemas/category/category.yaml#/QuestionPack'
+      '400':
+        $ref: '../../components/responses/errors.yaml#/BadRequest'
+      '404':
+        $ref: '../../components/responses/errors.yaml#/NotFound'
+      '409':
+        $ref: '../../components/responses/errors.yaml#/Conflict'
+      '500':
+        $ref: '../../components/responses/errors.yaml#/InternalError'
+
+questions:
+  post:
+    operationId: createCategoryQuestion
+    security:
+      - bearerAuth: []
+    tags: [categories]
+    summary: Добавить вопрос категории или пакета
+    parameters:
+      - name: categoryId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../../components/schemas/category/category.yaml#/CreateCategoryQuestionRequest'
+    responses:
+      '200':
+        description: Вопрос
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '../../components/schemas/common.yaml#/ApiResponse'
+                - type: object
+                  properties:
+                    data:
+                      $ref: '../../components/schemas/category/category.yaml#/CategoryQuestion'
+      '400':
+        $ref: '../../components/responses/errors.yaml#/BadRequest'
+      '404':
+        $ref: '../../components/responses/errors.yaml#/NotFound'
+      '500':
+        $ref: '../../components/responses/errors.yaml#/InternalError'
+
+questionById:
+  patch:
+    operationId: updateCategoryQuestion
+    security:
+      - bearerAuth: []
+    tags: [categories]
+    summary: Править вопрос
+    parameters:
+      - name: categoryId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../../components/schemas/category/category.yaml#/UpdateCategoryQuestionRequest'
+    responses:
+      '200':
+        description: Вопрос
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '../../components/schemas/common.yaml#/ApiResponse'
+                - type: object
+                  properties:
+                    data:
+                      $ref: '../../components/schemas/category/category.yaml#/CategoryQuestion'
+      '400':
+        $ref: '../../components/responses/errors.yaml#/BadRequest'
+      '404':
+        $ref: '../../components/responses/errors.yaml#/NotFound'
+      '500':
+        $ref: '../../components/responses/errors.yaml#/InternalError'
+
+sites:
+  post:
+    operationId: createCategorySite
+    security:
+      - bearerAuth: []
+    tags: [categories]
+    summary: Добавить площадку категории
+    parameters:
+      - name: categoryId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../../components/schemas/category/category.yaml#/CreateCategorySiteRequest'
+    responses:
+      '200':
+        description: Площадка
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '../../components/schemas/common.yaml#/ApiResponse'
+                - type: object
+                  properties:
+                    data:
+                      $ref: '../../components/schemas/category/category.yaml#/CategorySite'
+      '400':
+        $ref: '../../components/responses/errors.yaml#/BadRequest'
+      '404':
+        $ref: '../../components/responses/errors.yaml#/NotFound'
+      '500':
+        $ref: '../../components/responses/errors.yaml#/InternalError'
+
+siteById:
+  patch:
+    operationId: updateCategorySite
+    security:
+      - bearerAuth: []
+    tags: [categories]
+    summary: Править площадку
+    parameters:
+      - name: categoryId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../../components/schemas/category/category.yaml#/UpdateCategorySiteRequest'
+    responses:
+      '200':
+        description: Площадка
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '../../components/schemas/common.yaml#/ApiResponse'
+                - type: object
+                  properties:
+                    data:
+                      $ref: '../../components/schemas/category/category.yaml#/CategorySite'
+      '400':
+        $ref: '../../components/responses/errors.yaml#/BadRequest'
+      '404':
+        $ref: '../../components/responses/errors.yaml#/NotFound'
+      '500':
+        $ref: '../../components/responses/errors.yaml#/InternalError'

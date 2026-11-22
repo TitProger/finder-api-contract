@@ -1,0 +1,18 @@
+health:
+  get:
+    operationId: getHealth
+    tags: [health]
+    summary: Проверка работоспособности сервиса
+    security: []
+    responses:
+      '200':
+        description: Сервис доступен
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '../../components/schemas/common.yaml#/ApiResponse'
+                - type: object
+                  properties:
+                    data:
+                      $ref: '../../components/schemas/common.yaml#/HealthData'

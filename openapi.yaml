@@ -1,0 +1,179 @@
+openapi: 3.1.0
+info:
+  title: Finder API
+  version: 0.8.0
+  description: >
+    Контракт API Finder.
+    Источник правды — этот репозиторий (git tag).
+servers:
+  - url: http://localhost:8090
+    description: local
+tags:
+  - name: health
+    description: Проверка работоспособности
+  - name: categories
+    description: Справочник категорий для админа
+  - name: inquiries
+    description: Заявка клиента и назначение категории админом
+  - name: optimal-cards
+    description: Оптимальная карточка, которую админ помечает живой
+  - name: research
+    description: Запуск ресерча и приём досье
+paths:
+  /health:
+    $ref: './paths/common/health.yaml#/health'
+  /admin/categories:
+    $ref: './paths/category/categories.yaml#/listCreate'
+  /admin/categories/{id}:
+    $ref: './paths/category/categories.yaml#/byId'
+  /admin/categories/{categoryId}/phrases:
+    $ref: './paths/category/categories.yaml#/phrases'
+  /admin/categories/{categoryId}/phrases/{id}:
+    $ref: './paths/category/categories.yaml#/phraseById'
+  /admin/categories/{categoryId}/question-packs:
+    $ref: './paths/category/categories.yaml#/questionPacks'
+  /admin/categories/{categoryId}/question-packs/{id}:
+    $ref: './paths/category/categories.yaml#/questionPackById'
+  /admin/categories/{categoryId}/questions:
+    $ref: './paths/category/categories.yaml#/questions'
+  /admin/categories/{categoryId}/questions/{id}:
+    $ref: './paths/category/categories.yaml#/questionById'
+  /admin/categories/{categoryId}/sites:
+    $ref: './paths/category/categories.yaml#/sites'
+  /admin/categories/{categoryId}/sites/{id}:
+    $ref: './paths/category/categories.yaml#/siteById'
+  /inquiries:
+    $ref: './paths/inquiry/inquiries.yaml#/create'
+  /inquiries/{id}:
+    $ref: './paths/inquiry/inquiries.yaml#/byId'
+  /admin/inquiries/{id}/assign-category:
+    $ref: './paths/inquiry/inquiries.yaml#/assignCategory'
+  /admin/inquiries/{id}/assign-new-category:
+    $ref: './paths/inquiry/inquiries.yaml#/assignNewCategory'
+  /admin/inquiries/{id}/rerun-research:
+    $ref: './paths/inquiry/inquiries.yaml#/rerunResearch'
+  /admin/inquiries/{id}/economics:
+    $ref: './paths/inquiry/inquiries.yaml#/economics'
+  /admin/optimal-cards:
+    $ref: './paths/market/optimal-cards.yaml#/collection'
+  /admin/optimal-cards/{id}:
+    $ref: './paths/market/optimal-cards.yaml#/byId'
+  /research/ingest:
+    $ref: './paths/research/ingest.yaml#/ingest'
+components:
+  securitySchemes:
+    bearerAuth:
+      $ref: './components/securitySchemes.yaml#/bearerAuth'
+    researchIngestToken:
+      $ref: './components/securitySchemes.yaml#/researchIngestToken'
+  parameters:
+    PageQuery:
+      $ref: './components/parameters/common.yaml#/PageQuery'
+    LimitQuery:
+      $ref: './components/parameters/common.yaml#/LimitQuery'
+    SortQuery:
+      $ref: './components/parameters/common.yaml#/SortQuery'
+    IdPath:
+      $ref: './components/parameters/common.yaml#/IdPath'
+  schemas:
+    ApiStatus:
+      $ref: './components/schemas/common.yaml#/ApiStatus'
+    PageInfo:
+      $ref: './components/schemas/common.yaml#/PageInfo'
+    ApiError:
+      $ref: './components/schemas/common.yaml#/ApiError'
+    HealthData:
+      $ref: './components/schemas/common.yaml#/HealthData'
+    ApiResponse:
+      $ref: './components/schemas/common.yaml#/ApiResponse'
+    CategoryStatus:
+      $ref: './components/schemas/category/category.yaml#/CategoryStatus'
+    QuestionAnswerType:
+      $ref: './components/schemas/category/category.yaml#/QuestionAnswerType'
+    SiteRole:
+      $ref: './components/schemas/category/category.yaml#/SiteRole'
+    Category:
+      $ref: './components/schemas/category/category.yaml#/Category'
+    CategoryDetail:
+      $ref: './components/schemas/category/category.yaml#/CategoryDetail'
+    CategoryPhrase:
+      $ref: './components/schemas/category/category.yaml#/CategoryPhrase'
+    QuestionPack:
+      $ref: './components/schemas/category/category.yaml#/QuestionPack'
+    CategoryQuestion:
+      $ref: './components/schemas/category/category.yaml#/CategoryQuestion'
+    CategorySite:
+      $ref: './components/schemas/category/category.yaml#/CategorySite'
+    CreateCategoryRequest:
+      $ref: './components/schemas/category/category.yaml#/CreateCategoryRequest'
+    UpdateCategoryRequest:
+      $ref: './components/schemas/category/category.yaml#/UpdateCategoryRequest'
+    CreateCategoryPhraseRequest:
+      $ref: './components/schemas/category/category.yaml#/CreateCategoryPhraseRequest'
+    UpdateCategoryPhraseRequest:
+      $ref: './components/schemas/category/category.yaml#/UpdateCategoryPhraseRequest'
+    CreateQuestionPackRequest:
+      $ref: './components/schemas/category/category.yaml#/CreateQuestionPackRequest'
+    UpdateQuestionPackRequest:
+      $ref: './components/schemas/category/category.yaml#/UpdateQuestionPackRequest'
+    CreateCategoryQuestionRequest:
+      $ref: './components/schemas/category/category.yaml#/CreateCategoryQuestionRequest'
+    UpdateCategoryQuestionRequest:
+      $ref: './components/schemas/category/category.yaml#/UpdateCategoryQuestionRequest'
+    CreateCategorySiteRequest:
+      $ref: './components/schemas/category/category.yaml#/CreateCategorySiteRequest'
+    UpdateCategorySiteRequest:
+      $ref: './components/schemas/category/category.yaml#/UpdateCategorySiteRequest'
+    InquiryStatus:
+      $ref: './components/schemas/inquiry/inquiry.yaml#/InquiryStatus'
+    ClassificationMatch:
+      $ref: './components/schemas/inquiry/inquiry.yaml#/ClassificationMatch'
+    ClassificationOutcome:
+      $ref: './components/schemas/inquiry/inquiry.yaml#/ClassificationOutcome'
+    ClassificationCandidate:
+      $ref: './components/schemas/inquiry/inquiry.yaml#/ClassificationCandidate'
+    ClassificationScores:
+      $ref: './components/schemas/inquiry/inquiry.yaml#/ClassificationScores'
+    InquiryQuestion:
+      $ref: './components/schemas/inquiry/inquiry.yaml#/InquiryQuestion'
+    Inquiry:
+      $ref: './components/schemas/inquiry/inquiry.yaml#/Inquiry'
+    CreateInquiryRequest:
+      $ref: './components/schemas/inquiry/inquiry.yaml#/CreateInquiryRequest'
+    AssignCategoryRequest:
+      $ref: './components/schemas/inquiry/inquiry.yaml#/AssignCategoryRequest'
+    CreateCategoryAndAssignRequest:
+      $ref: './components/schemas/inquiry/inquiry.yaml#/CreateCategoryAndAssignRequest'
+    ResearchRerunResult:
+      $ref: './components/schemas/inquiry/inquiry.yaml#/ResearchRerunResult'
+    SaveInquiryEconomicsRequest:
+      $ref: './components/schemas/inquiry/inquiry.yaml#/SaveInquiryEconomicsRequest'
+    InquiryEconomics:
+      $ref: './components/schemas/inquiry/inquiry.yaml#/InquiryEconomics'
+    ContactChannel:
+      $ref: './components/schemas/market/optimal-card.yaml#/ContactChannel'
+    AttributeValue:
+      $ref: './components/schemas/market/optimal-card.yaml#/AttributeValue'
+    OptimalCard:
+      $ref: './components/schemas/market/optimal-card.yaml#/OptimalCard'
+    CreateOptimalCardRequest:
+      $ref: './components/schemas/market/optimal-card.yaml#/CreateOptimalCardRequest'
+    UpdateOptimalCardRequest:
+      $ref: './components/schemas/market/optimal-card.yaml#/UpdateOptimalCardRequest'
+    ResearchDossier:
+      $ref: './components/schemas/research/dossier.yaml#/ResearchDossier'
+    ResearchIngestResult:
+      $ref: './components/schemas/research/dossier.yaml#/ResearchIngestResult'
+  responses:
+    Unauthorized:
+      $ref: './components/responses/errors.yaml#/Unauthorized'
+    Forbidden:
+      $ref: './components/responses/errors.yaml#/Forbidden'
+    NotFound:
+      $ref: './components/responses/errors.yaml#/NotFound'
+    BadRequest:
+      $ref: './components/responses/errors.yaml#/BadRequest'
+    Conflict:
+      $ref: './components/responses/errors.yaml#/Conflict'
+    InternalError:
+      $ref: './components/responses/errors.yaml#/InternalError'
