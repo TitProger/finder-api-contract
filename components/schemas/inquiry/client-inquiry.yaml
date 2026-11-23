@@ -1,0 +1,83 @@
+ClientInquiry:
+  type: object
+  additionalProperties: false
+  required:
+    - id
+    - status
+    - rawText
+    - mediaIds
+    - categoryId
+    - isPaused
+    - pauseReason
+    - profileJson
+    - createdAt
+    - updatedAt
+  description: >
+    Клиентская заявка веба. Без telegramUserId и без Telegram file_id.
+    mediaIds — внутренние id файлов хранилища.
+  properties:
+    id:
+      type: string
+      format: uuid
+    status:
+      $ref: './inquiry.yaml#/InquiryStatus'
+    rawText:
+      type: string
+    mediaIds:
+      type: array
+      maxItems: 4
+      items:
+        type: string
+        format: uuid
+      description: Id файлов из POST /files. Пустой массив, если фото нет.
+    categoryId:
+      type: [string, 'null']
+      format: uuid
+      description: null, пока классификатор сомневается или фраза неоднозначна.
+    isPaused:
+      type: boolean
+    pauseReason:
+      type: [string, 'null']
+    profileJson:
+      description: >
+        Ответы анкеты. Недостающее поле — null, не выдумка.
+        null целиком, если профиль ещё не передавали.
+      oneOf:
+        - type: 'null'
+        - type: object
+          additionalProperties: true
+    createdAt:
+      type: string
+      format: date-time
+    updatedAt:
+      type: [string, 'null']
+      format: date-time
+
+CreateClientInquiryRequest:
+  type: object
+  additionalProperties: false
+  required: [text]
+  description: >
+    Текст и/или уже загруженные mediaIds. telegramUserId не принимается.
+    Токен админа не нужен.
+  properties:
+    text:
+      type: string
+      minLength: 1
+      maxLength: 8000
+      description: Название или свободный текст заявки.
+    mediaIds:
+      type: array
+      maxItems: 4
+      items:
+        type: string
+        format: uuid
+      description: Id из POST /files. Повтор и неизвестный id — 400.
+    profileJson:
+      description: >
+        Профиль ответов. Ключ без значения — null.
+        Неизвестные поля не выдумываются.
+      oneOf:
+        - type: 'null'
+        - type: object
+          additionalProperties: true

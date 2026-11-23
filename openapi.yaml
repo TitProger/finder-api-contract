@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: Finder API
-  version: 0.10.0
+  version: 0.11.0
   description: >
     Контракт API Finder.
     Источник правды — этот репозиторий (git tag).
@@ -15,6 +15,8 @@ tags:
     description: Справочник категорий для админа
   - name: inquiries
     description: Заявка клиента и назначение категории админом
+  - name: client-inquiries
+    description: Клиентская заявка сайта без Telegram-полей
   - name: optimal-cards
     description: Оптимальная карточка, которую админ помечает живой
   - name: research
@@ -24,7 +26,7 @@ tags:
   - name: search
     description: Пачка вопросов первой страницы
   - name: files
-    description: Файлы, на которые ссылается карточка
+    description: Файлы хранилища и карточки
 paths:
   /health:
     $ref: './paths/common/health.yaml#/health'
@@ -52,6 +54,8 @@ paths:
     $ref: './paths/inquiry/inquiries.yaml#/create'
   /inquiries/{id}:
     $ref: './paths/inquiry/inquiries.yaml#/byId'
+  /client/inquiries:
+    $ref: './paths/client-inquiries/client-inquiries.yaml#/create'
   /admin/inquiries/{id}/assign-category:
     $ref: './paths/inquiry/inquiries.yaml#/assignCategory'
   /admin/inquiries/{id}/assign-new-category:
@@ -72,6 +76,8 @@ paths:
     $ref: './paths/products/products.yaml#/list'
   /products/{id}:
     $ref: './paths/products/products.yaml#/byId'
+  /files:
+    $ref: './paths/files/files.yaml#/upload'
   /files/{id}/content:
     $ref: './paths/files/files.yaml#/content'
 components:
@@ -154,6 +160,14 @@ components:
       $ref: './components/schemas/inquiry/inquiry.yaml#/Inquiry'
     CreateInquiryRequest:
       $ref: './components/schemas/inquiry/inquiry.yaml#/CreateInquiryRequest'
+    ClientInquiry:
+      $ref: './components/schemas/inquiry/client-inquiry.yaml#/ClientInquiry'
+    CreateClientInquiryRequest:
+      $ref: './components/schemas/inquiry/client-inquiry.yaml#/CreateClientInquiryRequest'
+    StoredFile:
+      $ref: './components/schemas/file/stored-file.yaml#/StoredFile'
+    UploadStoredFileRequest:
+      $ref: './components/schemas/file/stored-file.yaml#/UploadStoredFileRequest'
     AssignCategoryRequest:
       $ref: './components/schemas/inquiry/inquiry.yaml#/AssignCategoryRequest'
     CreateCategoryAndAssignRequest:

@@ -1,0 +1,28 @@
+StoredFile:
+  type: object
+  additionalProperties: false
+  required: [id, mime, sizeBytes]
+  description: Файл в хранилище. Скачивание — GET /files/{id}/content.
+  properties:
+    id:
+      type: string
+      format: uuid
+    mime:
+      type: string
+      minLength: 1
+      maxLength: 128
+    sizeBytes:
+      type: integer
+      minimum: 0
+
+UploadStoredFileRequest:
+  type: object
+  additionalProperties: false
+  required: [file]
+  description: >
+    Multipart: одно поле file. Принимаются jpg, jpeg, png, webp.
+    Ответ — id файла; его передают в mediaIds клиентской заявки.
+  properties:
+    file:
+      type: string
+      format: binary

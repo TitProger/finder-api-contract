@@ -1,0 +1,34 @@
+create:
+  post:
+    operationId: createClientInquiry
+    tags: [client-inquiries]
+    summary: Создать клиентскую заявку
+    description: >
+      Публичная ручка сайта. Текст и mediaIds (внутренние id файлов хранилища).
+      telegramUserId и админский токен не нужны и не принимаются.
+      Классификация как у старой заявки: точная фраза даёт категорию, иначе пауза.
+      Ресерч и готовая цена в этом ответе не стартуют и не ждут.
+      В ответе статус заявки; на экране это «в работе».
+    security: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../../components/schemas/inquiry/client-inquiry.yaml#/CreateClientInquiryRequest'
+    responses:
+      '200':
+        description: Заявка принята
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '../../components/schemas/common.yaml#/ApiResponse'
+                - type: object
+                  properties:
+                    data:
+                      $ref: '../../components/schemas/inquiry/client-inquiry.yaml#/ClientInquiry'
+      '400':
+        $ref: '../../components/responses/errors.yaml#/BadRequest'
+      '500':
+        $ref: '../../components/responses/errors.yaml#/InternalError'

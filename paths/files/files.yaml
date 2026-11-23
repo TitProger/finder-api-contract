@@ -1,3 +1,36 @@
+upload:
+  post:
+    operationId: uploadStoredFile
+    security: []
+    tags: [files]
+    summary: Загрузить фото для заявки
+    description: >
+      Публичная загрузка в файловое хранилище. Multipart-поле file.
+      Только jpg, jpeg, png, webp. В ответе id файла для mediaIds заявки.
+      Это не Telegram file_id.
+    requestBody:
+      required: true
+      content:
+        multipart/form-data:
+          schema:
+            $ref: '../../components/schemas/file/stored-file.yaml#/UploadStoredFileRequest'
+    responses:
+      '200':
+        description: Файл сохранён
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '../../components/schemas/common.yaml#/ApiResponse'
+                - type: object
+                  properties:
+                    data:
+                      $ref: '../../components/schemas/file/stored-file.yaml#/StoredFile'
+      '400':
+        $ref: '../../components/responses/errors.yaml#/BadRequest'
+      '500':
+        $ref: '../../components/responses/errors.yaml#/InternalError'
+
 content:
   get:
     operationId: getStoredFileContent
