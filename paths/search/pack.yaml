@@ -1,0 +1,23 @@
+pack:
+  get:
+    operationId: getSearchPack
+    tags: [search]
+    summary: Пачка вопросов и категории экрана поиска
+    description: >
+      Публичная пачка для первой страницы. На экране виден один вопрос.
+      Иконки категорий — имена, не картинки.
+    security: []
+    responses:
+      '200':
+        description: Пачка
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '../../components/schemas/common.yaml#/ApiResponse'
+                - type: object
+                  properties:
+                    data:
+                      $ref: '../../components/schemas/search/search-pack.yaml#/SearchPack'
+      '500':
+        $ref: '../../components/responses/errors.yaml#/InternalError'

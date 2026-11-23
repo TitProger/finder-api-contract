@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: Finder API
-  version: 0.8.0
+  version: 0.10.0
   description: >
     Контракт API Finder.
     Источник правды — этот репозиторий (git tag).
@@ -19,6 +19,12 @@ tags:
     description: Оптимальная карточка, которую админ помечает живой
   - name: research
     description: Запуск ресерча и приём досье
+  - name: products
+    description: История поиска и карточка товара для клиента
+  - name: search
+    description: Пачка вопросов первой страницы
+  - name: files
+    description: Файлы, на которые ссылается карточка
 paths:
   /health:
     $ref: './paths/common/health.yaml#/health'
@@ -60,6 +66,14 @@ paths:
     $ref: './paths/market/optimal-cards.yaml#/byId'
   /research/ingest:
     $ref: './paths/research/ingest.yaml#/ingest'
+  /search/pack:
+    $ref: './paths/search/pack.yaml#/pack'
+  /products:
+    $ref: './paths/products/products.yaml#/list'
+  /products/{id}:
+    $ref: './paths/products/products.yaml#/byId'
+  /files/{id}/content:
+    $ref: './paths/files/files.yaml#/content'
 components:
   securitySchemes:
     bearerAuth:
@@ -164,6 +178,38 @@ components:
       $ref: './components/schemas/research/dossier.yaml#/ResearchDossier'
     ResearchIngestResult:
       $ref: './components/schemas/research/dossier.yaml#/ResearchIngestResult'
+    ProductListItem:
+      $ref: './components/schemas/product/product.yaml#/ProductListItem'
+    ProductCard:
+      $ref: './components/schemas/product/product.yaml#/ProductCard'
+    ProductPhoto:
+      $ref: './components/schemas/product/product.yaml#/ProductPhoto'
+    ProductSpec:
+      $ref: './components/schemas/product/product.yaml#/ProductSpec'
+    ProductPriceTier:
+      $ref: './components/schemas/product/product.yaml#/ProductPriceTier'
+    ProductProcurement:
+      $ref: './components/schemas/product/product.yaml#/ProductProcurement'
+    ProductDeliveryRate:
+      $ref: './components/schemas/product/product.yaml#/ProductDeliveryRate'
+    ProductDelivery:
+      $ref: './components/schemas/product/product.yaml#/ProductDelivery'
+    ProductMarketQuote:
+      $ref: './components/schemas/product/product.yaml#/ProductMarketQuote'
+    ProductMarket:
+      $ref: './components/schemas/product/product.yaml#/ProductMarket'
+    ProductPriceSegment:
+      $ref: './components/schemas/product/product.yaml#/ProductPriceSegment'
+    ProductBreakdown:
+      $ref: './components/schemas/product/product.yaml#/ProductBreakdown'
+    SearchPack:
+      $ref: './components/schemas/search/search-pack.yaml#/SearchPack'
+    SearchQuestion:
+      $ref: './components/schemas/search/search-pack.yaml#/SearchQuestion'
+    SearchOption:
+      $ref: './components/schemas/search/search-pack.yaml#/SearchOption'
+    SearchCategory:
+      $ref: './components/schemas/search/search-pack.yaml#/SearchCategory'
   responses:
     Unauthorized:
       $ref: './components/responses/errors.yaml#/Unauthorized'

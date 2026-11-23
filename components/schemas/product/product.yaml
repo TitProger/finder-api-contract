@@ -1,0 +1,260 @@
+ProductListItem:
+  type: object
+  description: Строка истории поиска.
+  required: [id, slug, name, categoryLabel, materialCount, searchedAt, createdAt]
+  properties:
+    id:
+      type: string
+      format: uuid
+    slug:
+      type: string
+      description: Стабильный код демо-записи, повторный сид его не дублирует.
+    name:
+      type: string
+    categoryLabel:
+      type: string
+      description: Подпись категории в таблице и в фильтре.
+    chipLabel:
+      type: [string, 'null']
+      description: Короткий чип на карточке сетки. Пусто — чипа нет.
+    photoUrl:
+      type: [string, 'null']
+      description: Относительный путь байтов обложки.
+    materialCount:
+      type: integer
+      minimum: 0
+      description: Число материалов в колонке «контент».
+    searchedAt:
+      type: string
+      format: date-time
+    createdAt:
+      type: string
+      format: date-time
+    updatedAt:
+      type: [string, 'null']
+      format: date-time
+
+ProductPhoto:
+  type: object
+  required: [url, alt]
+  properties:
+    url:
+      type: string
+    alt:
+      type: string
+
+ProductSpec:
+  type: object
+  required: [label, value]
+  properties:
+    label:
+      type: string
+    value:
+      type: string
+
+ProductPriceTier:
+  type: object
+  required: [title, price, note, highlighted]
+  properties:
+    title:
+      type: string
+    price:
+      type: string
+    priceUnit:
+      type: [string, 'null']
+    converted:
+      type: [string, 'null']
+    note:
+      type: string
+    badge:
+      type: [string, 'null']
+    highlighted:
+      type: boolean
+
+ProductProcurement:
+  type: object
+  required: [title, moqLabel, tiers]
+  properties:
+    title:
+      type: string
+    moqLabel:
+      type: string
+    tiers:
+      type: array
+      items:
+        $ref: '#/ProductPriceTier'
+
+ProductDeliveryRate:
+  type: object
+  required: [caption, price]
+  properties:
+    caption:
+      type: string
+    price:
+      type: string
+    priceSuffix:
+      type: [string, 'null']
+    detail:
+      type: [string, 'null']
+
+ProductDelivery:
+  type: object
+  required: [available, demo, title]
+  properties:
+    available:
+      type: boolean
+      description: false — на экране «недоступно», чисел нет.
+    demo:
+      type: boolean
+      description: Фикстура стенда, не книга ставок.
+    title:
+      type: string
+    modes:
+      type: array
+      items:
+        type: string
+    perUnit:
+      anyOf:
+        - $ref: '#/ProductDeliveryRate'
+        - type: 'null'
+    perBatch:
+      anyOf:
+        - $ref: '#/ProductDeliveryRate'
+        - type: 'null'
+    included:
+      type: array
+      items:
+        type: string
+
+ProductMarketQuote:
+  type: object
+  required: [title, price, note, highlighted]
+  properties:
+    title:
+      type: string
+    price:
+      type: string
+    note:
+      type: string
+    highlighted:
+      type: boolean
+
+ProductMarket:
+  type: object
+  required: [title, sellersLabel, quotes]
+  properties:
+    title:
+      type: string
+    sellersLabel:
+      type: string
+    quotes:
+      type: array
+      items:
+        $ref: '#/ProductMarketQuote'
+
+ProductPriceSegment:
+  type: object
+  required: [label, sharePercent, tone]
+  properties:
+    label:
+      type: string
+    sharePercent:
+      type: number
+      minimum: 0
+    tone:
+      type: string
+      description: product, logistics, fee, fulfillment или profit.
+
+ProductBreakdown:
+  type: object
+  required: [title, verdict, stars, costPrice, costNote, profitPrice, profitNote, saleLabel, marginLabel, segments]
+  properties:
+    title:
+      type: string
+    verdict:
+      type: string
+    stars:
+      type: integer
+      minimum: 0
+      maximum: 5
+    costPrice:
+      type: string
+    costSuffix:
+      type: [string, 'null']
+    costNote:
+      type: string
+    profitPrice:
+      type: string
+    profitExtra:
+      type: [string, 'null']
+    profitNote:
+      type: string
+    saleLabel:
+      type: string
+    marginLabel:
+      type: string
+    segments:
+      type: array
+      items:
+        $ref: '#/ProductPriceSegment'
+
+ProductCard:
+  allOf:
+    - $ref: '#/ProductListItem'
+    - type: object
+      required: [photos, specs]
+      properties:
+        headline:
+          type: [string, 'null']
+          description: Заголовок на карточке, если он длиннее имени в истории.
+        cardCategoryLabel:
+          type: [string, 'null']
+          description: Бейдж категории на карточке.
+        article:
+          type: [string, 'null']
+        manufacturer:
+          type: [string, 'null']
+        oemLabel:
+          type: [string, 'null']
+        summaryTitle:
+          type: [string, 'null']
+        summary:
+          type: [string, 'null']
+        availabilityLabel:
+          type: [string, 'null']
+        demandLabel:
+          type: [string, 'null']
+        galleryMoreLabel:
+          type: [string, 'null']
+        verifiedLabel:
+          type: [string, 'null']
+        updatedLabel:
+          type: [string, 'null']
+        specsTitle:
+          type: [string, 'null']
+        passportLabel:
+          type: [string, 'null']
+        photos:
+          type: array
+          items:
+            $ref: '#/ProductPhoto'
+        specs:
+          type: array
+          items:
+            $ref: '#/ProductSpec'
+        procurement:
+          anyOf:
+            - $ref: '#/ProductProcurement'
+            - type: 'null'
+        delivery:
+          anyOf:
+            - $ref: '#/ProductDelivery'
+            - type: 'null'
+        market:
+          anyOf:
+            - $ref: '#/ProductMarket'
+            - type: 'null'
+        breakdown:
+          anyOf:
+            - $ref: '#/ProductBreakdown'
+            - type: 'null'

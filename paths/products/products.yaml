@@ -1,0 +1,68 @@
+list:
+  get:
+    operationId: listProducts
+    security: []
+    tags: [products]
+    summary: История поиска
+    description: >
+      Публичный список товаров, которые уже искали.
+      Сортировка — JSON, например {"searchedAt":"desc"}.
+      Фильтр category сравнивается с categoryLabel.
+    parameters:
+      - $ref: '../../components/parameters/common.yaml#/PageQuery'
+      - $ref: '../../components/parameters/common.yaml#/LimitQuery'
+      - $ref: '../../components/parameters/common.yaml#/SortQuery'
+      - name: category
+        in: query
+        required: false
+        description: Подпись категории. Пусто — все категории.
+        schema:
+          type: string
+    responses:
+      '200':
+        description: Страница истории
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '../../components/schemas/common.yaml#/ApiResponse'
+                - type: object
+                  properties:
+                    data:
+                      type: array
+                      items:
+                        $ref: '../../components/schemas/product/product.yaml#/ProductListItem'
+                    page:
+                      $ref: '../../components/schemas/common.yaml#/PageInfo'
+      '400':
+        $ref: '../../components/responses/errors.yaml#/BadRequest'
+      '500':
+        $ref: '../../components/responses/errors.yaml#/InternalError'
+
+byId:
+  get:
+    operationId: getProductById
+    security: []
+    tags: [products]
+    summary: Карточка товара
+    description: >
+      Описание, характеристики и четыре блока отчёта.
+      Числа приходят в полях ответа. Доставка с available=false — статус «недоступно».
+    parameters:
+      - $ref: '../../components/parameters/common.yaml#/IdPath'
+    responses:
+      '200':
+        description: Карточка
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '../../components/schemas/common.yaml#/ApiResponse'
+                - type: object
+                  properties:
+                    data:
+                      $ref: '../../components/schemas/product/product.yaml#/ProductCard'
+      '404':
+        $ref: '../../components/responses/errors.yaml#/NotFound'
+      '500':
+        $ref: '../../components/responses/errors.yaml#/InternalError'

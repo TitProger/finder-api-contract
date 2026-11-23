@@ -1,0 +1,50 @@
+SearchOption:
+  type: object
+  additionalProperties: false
+  required: [value, label]
+  properties:
+    value:
+      type: string
+    label:
+      type: string
+
+SearchQuestion:
+  type: object
+  additionalProperties: false
+  required: [id, title, options]
+  properties:
+    id:
+      type: string
+    title:
+      type: string
+    options:
+      type: array
+      items:
+        $ref: '#/SearchOption'
+
+SearchCategory:
+  type: object
+  additionalProperties: false
+  required: [name, hint, icon]
+  properties:
+    name:
+      type: string
+    hint:
+      type: string
+    icon:
+      type: string
+      description: Имя иконки на клиенте. Клиент рисует её сам.
+
+SearchPack:
+  type: object
+  additionalProperties: false
+  required: [questions, categories]
+  properties:
+    questions:
+      type: array
+      items:
+        $ref: '#/SearchQuestion'
+    categories:
+      type: array
+      items:
+        $ref: '#/SearchCategory'
