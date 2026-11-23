@@ -1,0 +1,44 @@
+ResearchSiteStatus:
+  type: string
+  description: Статус площадки в сыром досье.
+  enum: [ok, captcha, login_required, blocked, empty, skipped, unknown]
+
+ResearchEvidenceItem:
+  type: object
+  additionalProperties: false
+  required: [url, quote, capturedAt, siteStatus]
+  description: >
+    Сырое свидетельство для админа: URL, цитата, время, статус площадки.
+    Цены и контакты завода сюда не входят.
+  properties:
+    url:
+      type: string
+      description: Адрес страницы-источника.
+    quote:
+      type: [string, 'null']
+      description: Цитата или фрагмент карточки. null, если в оффере не было.
+    capturedAt:
+      type: string
+      format: date-time
+    site:
+      type: [string, 'null']
+      description: Имя площадки из досье, если известно.
+    siteStatus:
+      $ref: '#/ResearchSiteStatus'
+
+ResearchEvidence:
+  type: object
+  additionalProperties: false
+  required: [runId, inquiryId, items]
+  properties:
+    runId:
+      type: string
+      format: uuid
+      description: Внешний run_id прогона.
+    inquiryId:
+      type: string
+      format: uuid
+    items:
+      type: array
+      items:
+        $ref: '#/ResearchEvidenceItem'

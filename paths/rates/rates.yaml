@@ -1,0 +1,237 @@
+adminCollection:
+  get:
+    operationId: listLogisticsRates
+    tags: [rates]
+    summary: Список ставок владельца
+    description: >
+      Только ADMIN. Книга может быть пустой — это норма для фазы 1.
+      Пустая книга даёт quote со status unavailable и reason rates_not_configured.
+    security:
+      - bearerAuth: []
+    parameters:
+      - $ref: '../../components/parameters/common.yaml#/PageQuery'
+      - $ref: '../../components/parameters/common.yaml#/LimitQuery'
+      - name: activeOnly
+        in: query
+        required: false
+        description: true — только активные ставки.
+        schema:
+          type: boolean
+    responses:
+      '200':
+        description: Страница ставок
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '../../components/schemas/common.yaml#/ApiResponse'
+                - type: object
+                  properties:
+                    data:
+                      type: array
+                      items:
+                        $ref: '../../components/schemas/rates/rates.yaml#/LogisticsRate'
+                    page:
+                      $ref: '../../components/schemas/common.yaml#/PageInfo'
+      '401':
+        $ref: '../../components/responses/errors.yaml#/Unauthorized'
+      '403':
+        $ref: '../../components/responses/errors.yaml#/Forbidden'
+      '500':
+        $ref: '../../components/responses/errors.yaml#/InternalError'
+  post:
+    operationId: createLogisticsRate
+    tags: [rates]
+    summary: Добавить ставку в книгу
+    description: Только ADMIN. Расчёт логистики идёт кодом по этой книге, не моделью.
+    security:
+      - bearerAuth: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../../components/schemas/rates/rates.yaml#/CreateLogisticsRateRequest'
+    responses:
+      '200':
+        description: Созданная ставка
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '../../components/schemas/common.yaml#/ApiResponse'
+                - type: object
+                  properties:
+                    data:
+                      $ref: '../../components/schemas/rates/rates.yaml#/LogisticsRate'
+      '400':
+        $ref: '../../components/responses/errors.yaml#/BadRequest'
+      '401':
+        $ref: '../../components/responses/errors.yaml#/Unauthorized'
+      '403':
+        $ref: '../../components/responses/errors.yaml#/Forbidden'
+      '500':
+        $ref: '../../components/responses/errors.yaml#/InternalError'
+
+adminById:
+  get:
+    operationId: getLogisticsRateById
+    tags: [rates]
+    summary: Одна ставка
+    description: Только ADMIN.
+    security:
+      - bearerAuth: []
+    parameters:
+      - $ref: '../../components/parameters/common.yaml#/IdPath'
+    responses:
+      '200':
+        description: Ставка
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '../../components/schemas/common.yaml#/ApiResponse'
+                - type: object
+                  properties:
+                    data:
+                      $ref: '../../components/schemas/rates/rates.yaml#/LogisticsRate'
+      '401':
+        $ref: '../../components/responses/errors.yaml#/Unauthorized'
+      '403':
+        $ref: '../../components/responses/errors.yaml#/Forbidden'
+      '404':
+        $ref: '../../components/responses/errors.yaml#/NotFound'
+      '500':
+        $ref: '../../components/responses/errors.yaml#/InternalError'
+  patch:
+    operationId: updateLogisticsRate
+    tags: [rates]
+    summary: Править ставку
+    description: Только ADMIN. Пустые поля не меняют строку.
+    security:
+      - bearerAuth: []
+    parameters:
+      - $ref: '../../components/parameters/common.yaml#/IdPath'
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../../components/schemas/rates/rates.yaml#/UpdateLogisticsRateRequest'
+    responses:
+      '200':
+        description: Обновлённая ставка
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '../../components/schemas/common.yaml#/ApiResponse'
+                - type: object
+                  properties:
+                    data:
+                      $ref: '../../components/schemas/rates/rates.yaml#/LogisticsRate'
+      '400':
+        $ref: '../../components/responses/errors.yaml#/BadRequest'
+      '401':
+        $ref: '../../components/responses/errors.yaml#/Unauthorized'
+      '403':
+        $ref: '../../components/responses/errors.yaml#/Forbidden'
+      '404':
+        $ref: '../../components/responses/errors.yaml#/NotFound'
+      '500':
+        $ref: '../../components/responses/errors.yaml#/InternalError'
+  delete:
+    operationId: deleteLogisticsRate
+    tags: [rates]
+    summary: Удалить ставку
+    description: Только ADMIN. Строка убирается из книги. Боевых данных нет.
+    security:
+      - bearerAuth: []
+    parameters:
+      - $ref: '../../components/parameters/common.yaml#/IdPath'
+    responses:
+      '200':
+        description: Ставка удалена
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '../../components/schemas/common.yaml#/ApiResponse'
+                - type: object
+                  properties:
+                    data:
+                      type: 'null'
+      '401':
+        $ref: '../../components/responses/errors.yaml#/Unauthorized'
+      '403':
+        $ref: '../../components/responses/errors.yaml#/Forbidden'
+      '404':
+        $ref: '../../components/responses/errors.yaml#/NotFound'
+      '500':
+        $ref: '../../components/responses/errors.yaml#/InternalError'
+
+quote:
+  post:
+    operationId: quoteLogistics
+    tags: [rates]
+    summary: Расчёт доставки по книге ставок
+    description: >
+      Публично. Считает код по активным ставкам владельца. Модель не участвует.
+      Пока книги нет или нет активных ставок — data.status=unavailable,
+      reason=rates_not_configured. Вес с origin=inferred — 400, в расчёт не идёт.
+      Один и тот же вход при тех же ставках даёт один и тот же результат.
+    security: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../../components/schemas/rates/rates.yaml#/LogisticsQuoteRequest'
+    responses:
+      '200':
+        description: Расчёт или unavailable
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '../../components/schemas/common.yaml#/ApiResponse'
+                - type: object
+                  properties:
+                    data:
+                      $ref: '../../components/schemas/rates/rates.yaml#/LogisticsQuoteResult'
+      '400':
+        $ref: '../../components/responses/errors.yaml#/BadRequest'
+      '500':
+        $ref: '../../components/responses/errors.yaml#/InternalError'
+
+margin:
+  post:
+    operationId: estimateMargin
+    tags: [rates]
+    summary: Оценка маржи с расходами
+    description: >
+      Публично. Арифметика кода, не модели. Результат — оценка с оговоркой,
+      не факт прибыли. Доставку сюда передают числом из quote.
+    security: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../../components/schemas/rates/rates.yaml#/MarginEstimateRequest'
+    responses:
+      '200':
+        description: Оценка или unavailable
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '../../components/schemas/common.yaml#/ApiResponse'
+                - type: object
+                  properties:
+                    data:
+                      $ref: '../../components/schemas/rates/rates.yaml#/MarginEstimateResult'
+      '400':
+        $ref: '../../components/responses/errors.yaml#/BadRequest'
+      '500':
+        $ref: '../../components/responses/errors.yaml#/InternalError'

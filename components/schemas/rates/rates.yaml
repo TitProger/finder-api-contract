@@ -1,0 +1,411 @@
+FactOrigin:
+  type: string
+  description: >
+    Откуда взято число. inferred нельзя подавать в логистический калькулятор.
+  enum: [user, verified, inferred]
+
+MeasuredWeight:
+  type: object
+  additionalProperties: false
+  required: [valueKg, origin]
+  description: Вес одной единицы товара в килограммах с provenance.
+  properties:
+    valueKg:
+      type: number
+      exclusiveMinimum: 0
+      description: Килограммы за штуку. Больше нуля.
+    origin:
+      $ref: '#/FactOrigin'
+    confidence:
+      type: [number, 'null']
+      minimum: 0
+      maximum: 1
+      description: Уверенность 0…1. null, если не задана.
+
+LogisticsRate:
+  type: object
+  additionalProperties: false
+  required:
+    - id
+    - mode
+    - label
+    - originPlace
+    - destination
+    - currency
+    - pricePerKg
+    - fxToRub
+    - minCharge
+    - transitDaysMin
+    - transitDaysMax
+    - included
+    - isActive
+    - createdAt
+    - updatedAt
+  description: >
+    Строка книги ставок владельца. Пустая книга — норма: калькулятор
+    отвечает unavailable / rates_not_configured. Курс fxToRub фиксирован
+    в ставке, чтобы один вход давал один расчёт.
+  properties:
+    id:
+      type: string
+      format: uuid
+    mode:
+      type: string
+      description: Код режима, например cargo или white.
+      minLength: 1
+      maxLength: 64
+    label:
+      type: string
+      description: Подпись для человека, например «Карго быстрая».
+      minLength: 1
+      maxLength: 256
+    originPlace:
+      type: string
+      description: Пункт отправления в нижнем регистре, например guangzhou.
+      minLength: 1
+      maxLength: 128
+    destination:
+      type: string
+      description: Пункт назначения в нижнем регистре, например moscow.
+      minLength: 1
+      maxLength: 128
+    currency:
+      type: string
+      minLength: 3
+      maxLength: 3
+      description: Валюта ставки ISO-4217. Обычно USD или RUB.
+    pricePerKg:
+      type: number
+      minimum: 0
+      description: Ставка за килограмм в currency.
+    fxToRub:
+      type: number
+      exclusiveMinimum: 0
+      description: >
+        Фиксированный множитель currency→RUB для детерминированного расчёта.
+        Для RUB равен 1.
+    minCharge:
+      type: number
+      minimum: 0
+      description: Минимальная стоимость отправки в currency.
+    transitDaysMin:
+      type: integer
+      minimum: 0
+    transitDaysMax:
+      type: integer
+      minimum: 0
+    included:
+      type: array
+      items:
+        type: string
+      description: Что входит в ставку.
+    isActive:
+      type: boolean
+    createdAt:
+      type: string
+      format: date-time
+    updatedAt:
+      type: [string, 'null']
+      format: date-time
+
+CreateLogisticsRateRequest:
+  type: object
+  additionalProperties: false
+  required:
+    - mode
+    - label
+    - originPlace
+    - destination
+    - currency
+    - pricePerKg
+    - fxToRub
+  description: Новая ставка в книгу владельца. По умолчанию активна.
+  properties:
+    mode:
+      type: string
+      minLength: 1
+      maxLength: 64
+    label:
+      type: string
+      minLength: 1
+      maxLength: 256
+    originPlace:
+      type: string
+      minLength: 1
+      maxLength: 128
+    destination:
+      type: string
+      minLength: 1
+      maxLength: 128
+    currency:
+      type: string
+      minLength: 3
+      maxLength: 3
+    pricePerKg:
+      type: number
+      minimum: 0
+    fxToRub:
+      type: number
+      exclusiveMinimum: 0
+    minCharge:
+      type: number
+      minimum: 0
+      default: 0
+    transitDaysMin:
+      type: integer
+      minimum: 0
+      default: 0
+    transitDaysMax:
+      type: integer
+      minimum: 0
+      default: 0
+    included:
+      type: array
+      items:
+        type: string
+      default: []
+    isActive:
+      type: boolean
+      default: true
+
+UpdateLogisticsRateRequest:
+  type: object
+  additionalProperties: false
+  description: Пустые поля не меняют ставку.
+  properties:
+    mode:
+      type: string
+      minLength: 1
+      maxLength: 64
+    label:
+      type: string
+      minLength: 1
+      maxLength: 256
+    originPlace:
+      type: string
+      minLength: 1
+      maxLength: 128
+    destination:
+      type: string
+      minLength: 1
+      maxLength: 128
+    currency:
+      type: string
+      minLength: 3
+      maxLength: 3
+    pricePerKg:
+      type: number
+      minimum: 0
+    fxToRub:
+      type: number
+      exclusiveMinimum: 0
+    minCharge:
+      type: number
+      minimum: 0
+    transitDaysMin:
+      type: integer
+      minimum: 0
+    transitDaysMax:
+      type: integer
+      minimum: 0
+    included:
+      type: array
+      items:
+        type: string
+    isActive:
+      type: boolean
+
+LogisticsQuoteUnavailableReason:
+  type: string
+  description: Почему расчёт недоступен. Модель сюда не зовётся.
+  enum: [rates_not_configured, no_matching_rate]
+
+LogisticsQuoteRequest:
+  type: object
+  additionalProperties: false
+  required: [weight, quantity, destination]
+  description: >
+    Вход детерминированного калькулятора. Вес с origin=inferred
+    отклоняется до расчёта (400), в калькулятор не подаётся.
+  properties:
+    weight:
+      $ref: '#/MeasuredWeight'
+    quantity:
+      type: number
+      exclusiveMinimum: 0
+      description: Число штук в партии.
+    originPlace:
+      type: [string, 'null']
+      maxLength: 128
+      description: Пункт отправления. null — любой из книги.
+    destination:
+      type: string
+      minLength: 1
+      maxLength: 128
+    mode:
+      type: [string, 'null']
+      maxLength: 64
+      description: Предпочтительный режим. null — первая подходящая активная ставка.
+
+LogisticsQuoteUnavailable:
+  type: object
+  additionalProperties: false
+  required: [status, reason]
+  properties:
+    status:
+      type: string
+      enum: [unavailable]
+    reason:
+      $ref: '#/LogisticsQuoteUnavailableReason'
+
+LogisticsQuoteOk:
+  type: object
+  additionalProperties: false
+  required:
+    - status
+    - rateId
+    - mode
+    - label
+    - currency
+    - pricePerKg
+    - fxToRub
+    - weightKg
+    - quantity
+    - perUnitRub
+    - perBatchRub
+    - transitDaysMin
+    - transitDaysMax
+    - included
+  properties:
+    status:
+      type: string
+      enum: [ok]
+    rateId:
+      type: string
+      format: uuid
+    mode:
+      type: string
+    label:
+      type: string
+    currency:
+      type: string
+    pricePerKg:
+      type: number
+    fxToRub:
+      type: number
+    weightKg:
+      type: number
+    quantity:
+      type: number
+    perUnitRub:
+      type: number
+      description: Доставка за штуку в рублях.
+    perBatchRub:
+      type: number
+      description: Доставка всей партии в рублях.
+    transitDaysMin:
+      type: integer
+    transitDaysMax:
+      type: integer
+    included:
+      type: array
+      items:
+        type: string
+
+LogisticsQuoteResult:
+  description: Успех расчёта или честный unavailable. Не выдуманный тариф.
+  oneOf:
+    - $ref: '#/LogisticsQuoteUnavailable'
+    - $ref: '#/LogisticsQuoteOk'
+
+MarginExpense:
+  type: object
+  additionalProperties: false
+  required: [label, amountRub]
+  properties:
+    label:
+      type: string
+    amountRub:
+      type: number
+
+MarginEstimateRequest:
+  type: object
+  additionalProperties: false
+  required: [productCostRub, deliveryPerUnitRub]
+  description: >
+    Оценка маржи с расходами. Это не факт прибыли.
+    Доставку считает отдельный quote; сюда передают уже число.
+  properties:
+    productCostRub:
+      type: number
+      minimum: 0
+      description: Себестоимость товара за штуку в рублях без доставки.
+    deliveryPerUnitRub:
+      type: number
+      minimum: 0
+      description: Доставка за штуку из logistics quote.
+    dutyPercent:
+      type: number
+      minimum: 0
+      default: 0
+      description: Пошлина в процентах от цены товара.
+    otherCostRub:
+      type: number
+      minimum: 0
+      default: 0
+      description: Прочие расходы на штуку в рублях.
+    salePriceRub:
+      type: [number, 'null']
+      minimum: 0
+      description: Цена продажи. null — маржа в деньгах не считается.
+
+MarginEstimateUnavailable:
+  type: object
+  additionalProperties: false
+  required: [status, reason, disclaimer]
+  properties:
+    status:
+      type: string
+      enum: [unavailable]
+    reason:
+      type: string
+      enum: [invalid_input]
+    disclaimer:
+      type: string
+
+MarginEstimateOk:
+  type: object
+  additionalProperties: false
+  required:
+    - status
+    - costWithDeliveryRub
+    - expenses
+    - marginRub
+    - marginPercent
+    - disclaimer
+  properties:
+    status:
+      type: string
+      enum: [ok]
+    costWithDeliveryRub:
+      type: number
+      description: Товар + доставка + пошлина + прочее за штуку.
+    expenses:
+      type: array
+      items:
+        $ref: '#/MarginExpense'
+    marginRub:
+      type: [number, 'null']
+      description: salePriceRub − costWithDeliveryRub. null без цены продажи.
+    marginPercent:
+      type: [number, 'null']
+      description: Доля маржи от цены продажи. null без цены продажи.
+    disclaimer:
+      type: string
+      description: Всегда оговорка, что это оценка, не факт прибыли.
+
+MarginEstimateResult:
+  description: Оценка маржи с расходами или unavailable при плохом входе.
+  oneOf:
+    - $ref: '#/MarginEstimateUnavailable'
+    - $ref: '#/MarginEstimateOk'

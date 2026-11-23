@@ -1,0 +1,52 @@
+search:
+  get:
+    operationId: searchTaxonomyPaths
+    tags: [taxonomy]
+    summary: Подсказки пути категории
+    description: >
+      Публичный поиск по имени и пути в дереве Wikkeo.
+      В ответе цепочки вида «Дом → Сад → Газонокосилки», без выдачи всех узлов сразу.
+      Токен не нужен.
+    security: []
+    parameters:
+      - name: q
+        in: query
+        required: true
+        description: Строка поиска по имени или пути.
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 200
+      - name: limit
+        in: query
+        required: false
+        description: Сколько подсказок вернуть.
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 50
+          default: 20
+      - name: parentId
+        in: query
+        required: false
+        description: Сузить поиск поддеревом родителя (id узла Wikkeo).
+        schema:
+          type: integer
+    responses:
+      '200':
+        description: Подсказки пути
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '../../components/schemas/common.yaml#/ApiResponse'
+                - type: object
+                  properties:
+                    data:
+                      type: array
+                      items:
+                        $ref: '../../components/schemas/taxonomy/taxonomy-node.yaml#/TaxonomyPathSuggestion'
+      '400':
+        $ref: '../../components/responses/errors.yaml#/BadRequest'
+      '500':
+        $ref: '../../components/responses/errors.yaml#/InternalError'

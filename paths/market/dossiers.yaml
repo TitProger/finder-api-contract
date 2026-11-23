@@ -1,0 +1,254 @@
+collection:
+  post:
+    operationId: createDossier
+    tags: [dossiers]
+    summary: Создать черновик утверждённого досье
+    description: >
+      Только ADMIN. Эволюция optimal card: заявка, товар, поставщик и оффер
+      остаются разными сущностями. isLive не включается — для этого publish.
+      Контакты и сырая закупка остаются внутренними.
+    security:
+      - bearerAuth: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../../components/schemas/market/dossier.yaml#/CreateDossierRequest'
+    responses:
+      '200':
+        description: Черновик досье
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '../../components/schemas/common.yaml#/ApiResponse'
+                - type: object
+                  properties:
+                    data:
+                      $ref: '../../components/schemas/market/dossier.yaml#/AdminDossier'
+      '400':
+        $ref: '../../components/responses/errors.yaml#/BadRequest'
+      '401':
+        $ref: '../../components/responses/errors.yaml#/Unauthorized'
+      '403':
+        $ref: '../../components/responses/errors.yaml#/Forbidden'
+      '404':
+        $ref: '../../components/responses/errors.yaml#/NotFound'
+      '409':
+        $ref: '../../components/responses/errors.yaml#/Conflict'
+      '500':
+        $ref: '../../components/responses/errors.yaml#/InternalError'
+
+byId:
+  get:
+    operationId: getDossierById
+    tags: [dossiers]
+    summary: Полное досье для админа
+    description: >
+      Только ADMIN. Отдаёт контакты, сырую закупку и внутренние заметки.
+      Клиентская ручка /dossiers/{id}/report этого не делает.
+    security:
+      - bearerAuth: []
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    responses:
+      '200':
+        description: Полное досье
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '../../components/schemas/common.yaml#/ApiResponse'
+                - type: object
+                  properties:
+                    data:
+                      $ref: '../../components/schemas/market/dossier.yaml#/AdminDossier'
+      '401':
+        $ref: '../../components/responses/errors.yaml#/Unauthorized'
+      '403':
+        $ref: '../../components/responses/errors.yaml#/Forbidden'
+      '404':
+        $ref: '../../components/responses/errors.yaml#/NotFound'
+      '500':
+        $ref: '../../components/responses/errors.yaml#/InternalError'
+  patch:
+    operationId: updateDossier
+    tags: [dossiers]
+    summary: Править черновик или снятое досье
+    description: >
+      Только ADMIN. Публикацию живым делает POST .../publish, не этот PATCH.
+    security:
+      - bearerAuth: []
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../../components/schemas/market/dossier.yaml#/UpdateDossierRequest'
+    responses:
+      '200':
+        description: Досье после правки
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '../../components/schemas/common.yaml#/ApiResponse'
+                - type: object
+                  properties:
+                    data:
+                      $ref: '../../components/schemas/market/dossier.yaml#/AdminDossier'
+      '400':
+        $ref: '../../components/responses/errors.yaml#/BadRequest'
+      '401':
+        $ref: '../../components/responses/errors.yaml#/Unauthorized'
+      '403':
+        $ref: '../../components/responses/errors.yaml#/Forbidden'
+      '404':
+        $ref: '../../components/responses/errors.yaml#/NotFound'
+      '409':
+        $ref: '../../components/responses/errors.yaml#/Conflict'
+      '500':
+        $ref: '../../components/responses/errors.yaml#/InternalError'
+
+review:
+  post:
+    operationId: reviewDossier
+    tags: [dossiers]
+    summary: Подтвердить или отклонить часть досье
+    description: >
+      Только ADMIN. Цель — category, offer или supplier. Внутренний note
+      клиенту не отдаётся. Публикация требует approved по всем трём.
+    security:
+      - bearerAuth: []
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../../components/schemas/market/dossier.yaml#/ReviewDossierRequest'
+    responses:
+      '200':
+        description: Досье после review
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '../../components/schemas/common.yaml#/ApiResponse'
+                - type: object
+                  properties:
+                    data:
+                      $ref: '../../components/schemas/market/dossier.yaml#/AdminDossier'
+      '400':
+        $ref: '../../components/responses/errors.yaml#/BadRequest'
+      '401':
+        $ref: '../../components/responses/errors.yaml#/Unauthorized'
+      '403':
+        $ref: '../../components/responses/errors.yaml#/Forbidden'
+      '404':
+        $ref: '../../components/responses/errors.yaml#/NotFound'
+      '409':
+        $ref: '../../components/responses/errors.yaml#/Conflict'
+      '500':
+        $ref: '../../components/responses/errors.yaml#/InternalError'
+
+publish:
+  post:
+    operationId: publishDossier
+    tags: [dossiers]
+    summary: Опубликовать живое досье
+    description: >
+      Только ADMIN. Ставит isLive и срок перепроверки. Снимает флаг с другой
+      живой строки того же товара и диапазона. Очередь ресерча не трогает.
+    security:
+      - bearerAuth: []
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      required: false
+      content:
+        application/json:
+          schema:
+            $ref: '../../components/schemas/market/dossier.yaml#/PublishDossierRequest'
+    responses:
+      '200':
+        description: Живое досье
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '../../components/schemas/common.yaml#/ApiResponse'
+                - type: object
+                  properties:
+                    data:
+                      $ref: '../../components/schemas/market/dossier.yaml#/AdminDossier'
+      '400':
+        $ref: '../../components/responses/errors.yaml#/BadRequest'
+      '401':
+        $ref: '../../components/responses/errors.yaml#/Unauthorized'
+      '403':
+        $ref: '../../components/responses/errors.yaml#/Forbidden'
+      '404':
+        $ref: '../../components/responses/errors.yaml#/NotFound'
+      '409':
+        $ref: '../../components/responses/errors.yaml#/Conflict'
+      '500':
+        $ref: '../../components/responses/errors.yaml#/InternalError'
+
+safeReport:
+  get:
+    operationId: getDossierReport
+    tags: [dossiers]
+    summary: Безопасный отчёт досье
+    description: >
+      Публично. Типичная и нижняя правдоподобная цена, MOQ, условия, источники,
+      доставка или unavailable, оговорка. Без контактов завода, сырой закупки
+      и внутренних заметок. Неживой или просроченный — 404.
+    security: []
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    responses:
+      '200':
+        description: Безопасный отчёт
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '../../components/schemas/common.yaml#/ApiResponse'
+                - type: object
+                  properties:
+                    data:
+                      $ref: '../../components/schemas/market/dossier.yaml#/SafeDossierReport'
+      '404':
+        $ref: '../../components/responses/errors.yaml#/NotFound'
+      '500':
+        $ref: '../../components/responses/errors.yaml#/InternalError'

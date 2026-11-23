@@ -1,0 +1,28 @@
+byInquiryId:
+  get:
+    operationId: getClientInquiryReport
+    tags: [client-inquiries]
+    summary: Безопасный отчёт по заявке
+    description: >
+      Публично. Если заявка обслужилась из живого досье — отдаёт безопасный отчёт
+      с matchKind exact или similar. Контакты завода, сырая закупка и внутренние
+      заметки не входят. Пока досье не опубликовано или заявка ещё в ресерче — 404.
+    security: []
+    parameters:
+      - $ref: '../../components/parameters/common.yaml#/IdPath'
+    responses:
+      '200':
+        description: Безопасный отчёт
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '../../components/schemas/common.yaml#/ApiResponse'
+                - type: object
+                  properties:
+                    data:
+                      $ref: '../../components/schemas/market/dossier.yaml#/SafeDossierReport'
+      '404':
+        $ref: '../../components/responses/errors.yaml#/NotFound'
+      '500':
+        $ref: '../../components/responses/errors.yaml#/InternalError'

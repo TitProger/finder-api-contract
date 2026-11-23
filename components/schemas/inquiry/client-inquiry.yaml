@@ -1,12 +1,31 @@
+ClientInquiryStatus:
+  type: string
+  description: >
+    Честный статус для экрана поиска. Без процентов прогресса.
+  enum:
+    - draft
+    - analyzing
+    - needs_clarification
+    - submitted
+    - searching
+    - partial
+    - ready
+    - no_results
+    - error
+    - can_retry
+
 ClientInquiry:
   type: object
   additionalProperties: false
   required:
     - id
     - status
+    - clientStatus
+    - clientStatusLabel
     - rawText
     - mediaIds
     - categoryId
+    - taxonomyNodeId
     - isPaused
     - pauseReason
     - profileJson
@@ -15,12 +34,19 @@ ClientInquiry:
   description: >
     Клиентская заявка веба. Без telegramUserId и без Telegram file_id.
     mediaIds — внутренние id файлов хранилища.
+    Категория дерева — taxonomyNodeId (узел Wikkeo), не свободная строка.
+    clientStatus — честная подпись для панели результатов, не процент.
   properties:
     id:
       type: string
       format: uuid
     status:
       $ref: './inquiry.yaml#/InquiryStatus'
+    clientStatus:
+      $ref: '#/ClientInquiryStatus'
+    clientStatusLabel:
+      type: string
+      description: Русская подпись статуса для UI.
     rawText:
       type: string
     mediaIds:
@@ -33,7 +59,14 @@ ClientInquiry:
     categoryId:
       type: [string, 'null']
       format: uuid
-      description: null, пока классификатор сомневается или фраза неоднозначна.
+      description: >
+        Категория старого плоского справочника (классификатор).
+        null, пока классификатор сомневается или фраза неоднозначна.
+    taxonomyNodeId:
+      type: [integer, 'null']
+      description: >
+        Выбранный узел дерева Wikkeo. Истина категории заявки для сайта.
+        null, если клиент узел ещё не выбрал.
     isPaused:
       type: boolean
     pauseReason:
@@ -73,6 +106,11 @@ CreateClientInquiryRequest:
         type: string
         format: uuid
       description: Id из POST /files. Повтор и неизвестный id — 400.
+    taxonomyNodeId:
+      type: [integer, 'null']
+      description: >
+        Id узла дерева Wikkeo с выбора категории на сайте.
+        Неизвестный id — 400. Не подменяет categoryId классификатора.
     profileJson:
       description: >
         Профиль ответов. Ключ без значения — null.

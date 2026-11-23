@@ -4,10 +4,10 @@ InquiryStatus:
     - DRAFT
     - AWAITING_CATEGORY
     - COLLECTING_ANSWERS
+    - QUEUED_RESEARCH
     - SERVED_FROM_DATABASE
     - RESEARCHING
     - DOSSIER_WITH_ADMIN
-    - LIMIT_EXCEEDED
     - CLOSED
 
 ClassificationMatch:
@@ -109,7 +109,6 @@ Inquiry:
   required:
     - id
     - clientUserId
-    - telegramUserId
     - status
     - rawText
     - photoUrls
@@ -131,10 +130,6 @@ Inquiry:
     clientUserId:
       type: string
       format: uuid
-    telegramUserId:
-      type: integer
-      minimum: 1
-      description: Telegram user id клиента. Вход, не отдельная регистрация.
     status:
       $ref: '#/InquiryStatus'
     rawText:
@@ -145,9 +140,9 @@ Inquiry:
       items:
         type: string
       description: >
-        Telegram file_id фото, которое клиент приложил к тексту.
-        Пустой массив, если фото нет. POST /inquiries фото не принимает.
-        Бот пишет file_id сюда и пересылает фото админу. Это не публичная ссылка.
+        Идентификаторы файлов хранилища или другие непрозрачные строки.
+        Пустой массив, если фото нет. POST /inquiries файл не принимает.
+        Это не публичная ссылка.
     categoryId:
       type: [string, 'null']
       format: uuid
@@ -200,13 +195,9 @@ Inquiry:
 
 CreateInquiryRequest:
   type: object
-  required: [telegramUserId, text]
+  required: [text]
   additionalProperties: false
   properties:
-    telegramUserId:
-      type: integer
-      minimum: 1
-      description: Telegram user id. Если клиента ещё нет, создаётся роль CLIENT.
     text:
       type: string
       minLength: 1

@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: Finder API
-  version: 0.11.0
+  version: 0.16.0
   description: >
     Контракт API Finder.
     Источник правды — этот репозиторий (git tag).
@@ -13,16 +13,22 @@ tags:
     description: Проверка работоспособности
   - name: categories
     description: Справочник категорий для админа
+  - name: taxonomy
+    description: Дерево категорий Wikkeo — поиск пути и админская правка
   - name: inquiries
     description: Заявка клиента и назначение категории админом
   - name: client-inquiries
     description: Клиентская заявка сайта без Telegram-полей
   - name: optimal-cards
-    description: Оптимальная карточка, которую админ помечает живой
+    description: Оптимальная карточка (наследие). Новые сценарии — тег dossiers
+  - name: dossiers
+    description: Утверждённое каноническое досье и live-кэш
   - name: research
-    description: Запуск ресерча и приём досье
+    description: Очередь ресерча на Postgres, ingest и сырые свидетельства
+  - name: rates
+    description: Книга ставок владельца и детерминированные калькуляторы логистики и маржи
   - name: products
-    description: История поиска и карточка товара для клиента
+    description: История поиска и безопасный отчёт карточки для клиента
   - name: search
     description: Пачка вопросов первой страницы
   - name: files
@@ -50,12 +56,20 @@ paths:
     $ref: './paths/category/categories.yaml#/sites'
   /admin/categories/{categoryId}/sites/{id}:
     $ref: './paths/category/categories.yaml#/siteById'
+  /taxonomy/paths:
+    $ref: './paths/taxonomy/taxonomy-paths.yaml#/search'
+  /admin/taxonomy/nodes:
+    $ref: './paths/taxonomy/admin-taxonomy.yaml#/list'
+  /admin/taxonomy/nodes/{nodeId}:
+    $ref: './paths/taxonomy/admin-taxonomy.yaml#/byId'
   /inquiries:
     $ref: './paths/inquiry/inquiries.yaml#/create'
   /inquiries/{id}:
     $ref: './paths/inquiry/inquiries.yaml#/byId'
   /client/inquiries:
     $ref: './paths/client-inquiries/client-inquiries.yaml#/create'
+  /client/inquiries/{id}:
+    $ref: './paths/client-inquiries/client-inquiries.yaml#/byId'
   /admin/inquiries/{id}/assign-category:
     $ref: './paths/inquiry/inquiries.yaml#/assignCategory'
   /admin/inquiries/{id}/assign-new-category:
@@ -68,8 +82,30 @@ paths:
     $ref: './paths/market/optimal-cards.yaml#/collection'
   /admin/optimal-cards/{id}:
     $ref: './paths/market/optimal-cards.yaml#/byId'
+  /admin/dossiers:
+    $ref: './paths/market/dossiers.yaml#/collection'
+  /admin/dossiers/{id}:
+    $ref: './paths/market/dossiers.yaml#/byId'
+  /admin/dossiers/{id}/reviews:
+    $ref: './paths/market/dossiers.yaml#/review'
+  /admin/dossiers/{id}/publish:
+    $ref: './paths/market/dossiers.yaml#/publish'
+  /dossiers/{id}/report:
+    $ref: './paths/market/dossiers.yaml#/safeReport'
+  /client/inquiries/{id}/report:
+    $ref: './paths/client-inquiries/client-inquiry-report.yaml#/byInquiryId'
+  /admin/rates:
+    $ref: './paths/rates/rates.yaml#/adminCollection'
+  /admin/rates/{id}:
+    $ref: './paths/rates/rates.yaml#/adminById'
+  /rates/quote:
+    $ref: './paths/rates/rates.yaml#/quote'
+  /rates/margin:
+    $ref: './paths/rates/rates.yaml#/margin'
   /research/ingest:
     $ref: './paths/research/ingest.yaml#/ingest'
+  /admin/research/runs/{runId}/evidence:
+    $ref: './paths/research/evidence.yaml#/byRunId'
   /search/pack:
     $ref: './paths/search/pack.yaml#/pack'
   /products:
@@ -144,6 +180,12 @@ components:
       $ref: './components/schemas/category/category.yaml#/CreateCategorySiteRequest'
     UpdateCategorySiteRequest:
       $ref: './components/schemas/category/category.yaml#/UpdateCategorySiteRequest'
+    TaxonomyPathSuggestion:
+      $ref: './components/schemas/taxonomy/taxonomy-node.yaml#/TaxonomyPathSuggestion'
+    TaxonomyNode:
+      $ref: './components/schemas/taxonomy/taxonomy-node.yaml#/TaxonomyNode'
+    UpdateTaxonomyNodeRequest:
+      $ref: './components/schemas/taxonomy/taxonomy-node.yaml#/UpdateTaxonomyNodeRequest'
     InquiryStatus:
       $ref: './components/schemas/inquiry/inquiry.yaml#/InquiryStatus'
     ClassificationMatch:
@@ -160,6 +202,8 @@ components:
       $ref: './components/schemas/inquiry/inquiry.yaml#/Inquiry'
     CreateInquiryRequest:
       $ref: './components/schemas/inquiry/inquiry.yaml#/CreateInquiryRequest'
+    ClientInquiryStatus:
+      $ref: './components/schemas/inquiry/client-inquiry.yaml#/ClientInquiryStatus'
     ClientInquiry:
       $ref: './components/schemas/inquiry/client-inquiry.yaml#/ClientInquiry'
     CreateClientInquiryRequest:
@@ -188,10 +232,68 @@ components:
       $ref: './components/schemas/market/optimal-card.yaml#/CreateOptimalCardRequest'
     UpdateOptimalCardRequest:
       $ref: './components/schemas/market/optimal-card.yaml#/UpdateOptimalCardRequest'
+    DossierReviewDecision:
+      $ref: './components/schemas/market/dossier.yaml#/DossierReviewDecision'
+    DossierReviewTarget:
+      $ref: './components/schemas/market/dossier.yaml#/DossierReviewTarget'
+    DossierMatchKind:
+      $ref: './components/schemas/market/dossier.yaml#/DossierMatchKind'
+    SafeDossierSource:
+      $ref: './components/schemas/market/dossier.yaml#/SafeDossierSource'
+    SafeDossierReportBody:
+      $ref: './components/schemas/market/dossier.yaml#/SafeDossierReportBody'
+    SafeDossierReport:
+      $ref: './components/schemas/market/dossier.yaml#/SafeDossierReport'
+    AdminDossier:
+      $ref: './components/schemas/market/dossier.yaml#/AdminDossier'
+    CreateDossierRequest:
+      $ref: './components/schemas/market/dossier.yaml#/CreateDossierRequest'
+    UpdateDossierRequest:
+      $ref: './components/schemas/market/dossier.yaml#/UpdateDossierRequest'
+    ReviewDossierRequest:
+      $ref: './components/schemas/market/dossier.yaml#/ReviewDossierRequest'
+    PublishDossierRequest:
+      $ref: './components/schemas/market/dossier.yaml#/PublishDossierRequest'
+    FactOrigin:
+      $ref: './components/schemas/rates/rates.yaml#/FactOrigin'
+    MeasuredWeight:
+      $ref: './components/schemas/rates/rates.yaml#/MeasuredWeight'
+    LogisticsRate:
+      $ref: './components/schemas/rates/rates.yaml#/LogisticsRate'
+    CreateLogisticsRateRequest:
+      $ref: './components/schemas/rates/rates.yaml#/CreateLogisticsRateRequest'
+    UpdateLogisticsRateRequest:
+      $ref: './components/schemas/rates/rates.yaml#/UpdateLogisticsRateRequest'
+    LogisticsQuoteUnavailableReason:
+      $ref: './components/schemas/rates/rates.yaml#/LogisticsQuoteUnavailableReason'
+    LogisticsQuoteRequest:
+      $ref: './components/schemas/rates/rates.yaml#/LogisticsQuoteRequest'
+    LogisticsQuoteUnavailable:
+      $ref: './components/schemas/rates/rates.yaml#/LogisticsQuoteUnavailable'
+    LogisticsQuoteOk:
+      $ref: './components/schemas/rates/rates.yaml#/LogisticsQuoteOk'
+    LogisticsQuoteResult:
+      $ref: './components/schemas/rates/rates.yaml#/LogisticsQuoteResult'
+    MarginExpense:
+      $ref: './components/schemas/rates/rates.yaml#/MarginExpense'
+    MarginEstimateRequest:
+      $ref: './components/schemas/rates/rates.yaml#/MarginEstimateRequest'
+    MarginEstimateUnavailable:
+      $ref: './components/schemas/rates/rates.yaml#/MarginEstimateUnavailable'
+    MarginEstimateOk:
+      $ref: './components/schemas/rates/rates.yaml#/MarginEstimateOk'
+    MarginEstimateResult:
+      $ref: './components/schemas/rates/rates.yaml#/MarginEstimateResult'
     ResearchDossier:
       $ref: './components/schemas/research/dossier.yaml#/ResearchDossier'
     ResearchIngestResult:
       $ref: './components/schemas/research/dossier.yaml#/ResearchIngestResult'
+    ResearchSiteStatus:
+      $ref: './components/schemas/research/evidence.yaml#/ResearchSiteStatus'
+    ResearchEvidenceItem:
+      $ref: './components/schemas/research/evidence.yaml#/ResearchEvidenceItem'
+    ResearchEvidence:
+      $ref: './components/schemas/research/evidence.yaml#/ResearchEvidence'
     ProductListItem:
       $ref: './components/schemas/product/product.yaml#/ProductListItem'
     ProductCard:

@@ -7,8 +7,10 @@ create:
       Публичная ручка сайта. Текст и mediaIds (внутренние id файлов хранилища).
       telegramUserId и админский токен не нужны и не принимаются.
       Классификация как у старой заявки: точная фраза даёт категорию, иначе пауза.
-      Ресерч и готовая цена в этом ответе не стартуют и не ждут.
-      В ответе статус заявки; на экране это «в работе».
+      При известной категории сначала ищется живое досье (точное или похожее).
+      Попадание в кэш — статус SERVED_FROM_DATABASE, очередь ресерча не ставится.
+      Иначе заявка ставится в очередь ресерча на Postgres.
+      Ответ 200 значит «заявка принята», не «досье готово». Готовой цены в ответе нет.
     security: []
     requestBody:
       required: true
@@ -30,5 +32,34 @@ create:
                       $ref: '../../components/schemas/inquiry/client-inquiry.yaml#/ClientInquiry'
       '400':
         $ref: '../../components/responses/errors.yaml#/BadRequest'
+      '500':
+        $ref: '../../components/responses/errors.yaml#/InternalError'
+
+byId:
+  get:
+    operationId: getClientInquiry
+    tags: [client-inquiries]
+    summary: Статус клиентской заявки
+    description: >
+      Публичное чтение статуса заявки сайта по id.
+      clientStatus и clientStatusLabel — честные подписи без процентов прогресса.
+      Telegram-поля не отдаются.
+    security: []
+    parameters:
+      - $ref: '../../components/parameters/common.yaml#/IdPath'
+    responses:
+      '200':
+        description: Текущий статус заявки
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '../../components/schemas/common.yaml#/ApiResponse'
+                - type: object
+                  properties:
+                    data:
+                      $ref: '../../components/schemas/inquiry/client-inquiry.yaml#/ClientInquiry'
+      '404':
+        $ref: '../../components/responses/errors.yaml#/NotFound'
       '500':
         $ref: '../../components/responses/errors.yaml#/InternalError'

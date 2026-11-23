@@ -1,0 +1,38 @@
+byRunId:
+  get:
+    operationId: getResearchEvidence
+    tags: [research]
+    summary: Сырые свидетельства прогона
+    description: >
+      Только админский Bearer. URL, цитата, время и статус площадки из принятого досье.
+      Цены и контакты завода не отдаёт. Публикация канонического досье — тег dossiers.
+    security:
+      - bearerAuth: []
+    parameters:
+      - name: runId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: Внешний run_id прогона ресерча.
+    responses:
+      '200':
+        description: Список сырых свидетельств
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '../../components/schemas/common.yaml#/ApiResponse'
+                - type: object
+                  properties:
+                    data:
+                      $ref: '../../components/schemas/research/evidence.yaml#/ResearchEvidence'
+      '401':
+        $ref: '../../components/responses/errors.yaml#/Unauthorized'
+      '403':
+        $ref: '../../components/responses/errors.yaml#/Forbidden'
+      '404':
+        $ref: '../../components/responses/errors.yaml#/NotFound'
+      '500':
+        $ref: '../../components/responses/errors.yaml#/InternalError'

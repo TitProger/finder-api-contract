@@ -4,11 +4,11 @@ create:
     tags: [inquiries]
     summary: Создать заявку текстом
     description: >
-      Только админ (статический ADMIN_API_TOKEN). Клиент определяется telegram user id — это вход, не регистрация.
+      Только админ (статический ADMIN_API_TOKEN). Тело — текст заявки.
+      Telegram user id не принимается. Бот в создании заявки не участвует.
       Точная фраза активной категории пишет category_id и отдаёт вопросы этой категории
       и одного пакета, если текст точно совпал с его code или title.
       Иначе заявка на паузе, category_id пустой, research_run не создаётся.
-      Telegram-бот и парсеры не вызываются.
     security:
       - bearerAuth: []
     requestBody:

@@ -1,0 +1,90 @@
+TaxonomyPathSuggestion:
+  type: object
+  additionalProperties: false
+  required: [nodeId, parentId, slug, name, pathLabel, level]
+  description: Подсказка пути в дереве Wikkeo. Клиент не получает всё дерево сразу.
+  properties:
+    nodeId:
+      type: integer
+      description: Id узла из источника Wikkeo.
+    parentId:
+      type: [integer, 'null']
+      description: Id родителя. null у корня.
+    slug:
+      type: string
+    name:
+      type: string
+      description: Имя узла без пути.
+    pathLabel:
+      type: string
+      description: >
+        Иерархический путь для подсказки, например
+        «Дом и сад → Дача, сезонные товары и сад → Газонокосилки и триммеры».
+    level:
+      type: integer
+      minimum: 1
+
+TaxonomyNode:
+  type: object
+  additionalProperties: false
+  required:
+    - nodeId
+    - parentId
+    - slug
+    - name
+    - pathLabel
+    - level
+    - childCount
+    - isPrivate
+    - url
+    - createdAt
+  description: Узел таксономии Wikkeo.
+  properties:
+    nodeId:
+      type: integer
+      description: Id узла из источника Wikkeo.
+    parentId:
+      type: [integer, 'null']
+    slug:
+      type: string
+    name:
+      type: string
+    pathLabel:
+      type: string
+    level:
+      type: integer
+      minimum: 1
+    childCount:
+      type: integer
+      minimum: 0
+    isPrivate:
+      type: boolean
+    url:
+      type: [string, 'null']
+      description: URL категории на витрине-источнике, если был в снимке.
+    createdAt:
+      type: string
+      format: date-time
+    updatedAt:
+      type: [string, 'null']
+      format: date-time
+
+UpdateTaxonomyNodeRequest:
+  type: object
+  additionalProperties: false
+  minProperties: 1
+  description: Админская правка узла. Id и родителя не меняют.
+  properties:
+    name:
+      type: string
+      minLength: 1
+      maxLength: 255
+    slug:
+      type: string
+      minLength: 1
+      maxLength: 255
+    isPrivate:
+      type: boolean
+    url:
+      type: [string, 'null']
+      maxLength: 2048

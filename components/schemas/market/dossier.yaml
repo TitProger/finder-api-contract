@@ -1,0 +1,418 @@
+DossierReviewDecision:
+  type: string
+  description: Решение админа по части досье.
+  enum: [pending, approved, rejected]
+
+DossierReviewTarget:
+  type: string
+  description: Что именно подтверждают или отклоняют.
+  enum: [category, offer, supplier]
+
+DossierMatchKind:
+  type: string
+  description: Как повторный запрос совпал с живым досье.
+  enum: [exact, similar]
+
+SafeDossierSource:
+  type: object
+  additionalProperties: false
+  required: [url, capturedAt]
+  description: Публичный источник без контактов завода.
+  properties:
+    url:
+      type: string
+    capturedAt:
+      type: string
+      format: date-time
+    quote:
+      type: [string, 'null']
+      description: Короткая публичная цитата. null, если нет.
+
+SafeDossierReportBody:
+  type: object
+  additionalProperties: false
+  required:
+    - name
+    - categoryLabel
+    - typicalPrice
+    - lowestCrediblePrice
+    - currency
+    - moqLabel
+    - conditions
+    - sources
+    - delivery
+    - disclaimer
+    - photos
+    - specs
+  description: >
+    Тело безопасного отчёта без id. Без контактов завода, сырой закупки
+    и внутренних заметок. Числа не зашиваются в JSX.
+  properties:
+    name:
+      type: string
+    categoryLabel:
+      type: string
+    manufacturer:
+      type: [string, 'null']
+    summary:
+      type: [string, 'null']
+    typicalPrice:
+      type: [string, 'null']
+      description: Типичная достижимая цена. null, если ещё нет.
+    lowestCrediblePrice:
+      type: [string, 'null']
+      description: Самая низкая правдоподобная сопоставимая. Не цена-приманка.
+    currency:
+      type: [string, 'null']
+      minLength: 3
+      maxLength: 3
+    moqLabel:
+      type: [string, 'null']
+    conditions:
+      type: [string, 'null']
+      description: Условия поставки, видимые клиенту.
+    sources:
+      type: array
+      items:
+        $ref: '#/SafeDossierSource'
+    delivery:
+      $ref: '../product/product.yaml#/ProductDelivery'
+    disclaimer:
+      type: string
+      description: Оговорка, что оценка не является фактом прибыли.
+    photos:
+      type: array
+      items:
+        $ref: '../product/product.yaml#/ProductPhoto'
+    specs:
+      type: array
+      items:
+        $ref: '../product/product.yaml#/ProductSpec'
+    procurement:
+      anyOf:
+        - $ref: '../product/product.yaml#/ProductProcurement'
+        - type: 'null'
+    market:
+      anyOf:
+        - $ref: '../product/product.yaml#/ProductMarket'
+        - type: 'null'
+    breakdown:
+      anyOf:
+        - $ref: '../product/product.yaml#/ProductBreakdown'
+        - type: 'null'
+
+SafeDossierReport:
+  allOf:
+    - $ref: '#/SafeDossierReportBody'
+    - type: object
+      required: [id, matchKind, revalidateAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Id утверждённого досье.
+        matchKind:
+          anyOf:
+            - $ref: '#/DossierMatchKind'
+            - type: 'null'
+          description: null, если отчёт открыли напрямую, а не из кэша заявки.
+        revalidateAt:
+          type: [string, 'null']
+          format: date-time
+          description: Срок перепроверки живого досье.
+
+AdminDossier:
+  type: object
+  additionalProperties: false
+  required:
+    - id
+    - categoryId
+    - canonicalProductId
+    - nameRu
+    - nameZh
+    - qtyMin
+    - qtyMax
+    - quantityQuestionId
+    - isLive
+    - offerId
+    - companyId
+    - storefrontId
+    - price
+    - currency
+    - contactValue
+    - contactChannel
+    - contactUrl
+    - contactAdminEntered
+    - contactEnteredAt
+    - productAttributes
+    - reasonNote
+    - categoryReview
+    - offerReview
+    - supplierReview
+    - reviewNote
+    - matchText
+    - publicReport
+    - markedLiveByUserId
+    - markedLiveAt
+    - revalidateAt
+    - expiresAt
+    - createdAt
+    - updatedAt
+  description: >
+    Полное утверждённое досье для админа. Заявка, товар, поставщик и оффер —
+    разные сущности: здесь ссылки на них. Контакты и reasonNote только здесь.
+  properties:
+    id:
+      type: string
+      format: uuid
+    categoryId:
+      type: string
+      format: uuid
+    canonicalProductId:
+      type: string
+      format: uuid
+    nameRu:
+      type: string
+    nameZh:
+      type: [string, 'null']
+    qtyMin:
+      type: number
+      minimum: 0
+    qtyMax:
+      type: number
+      minimum: 0
+    quantityQuestionId:
+      type: string
+      format: uuid
+    isLive:
+      type: boolean
+      description: Живой кэш. На товар и диапазон количества живая одна строка.
+    offerId:
+      type: [string, 'null']
+      format: uuid
+    companyId:
+      type: [string, 'null']
+      format: uuid
+    storefrontId:
+      type: [string, 'null']
+      format: uuid
+    price:
+      type: [number, 'null']
+      minimum: 0
+      description: Внутренняя сырая закупка. Клиенту не отдаётся.
+    currency:
+      type: [string, 'null']
+    contactValue:
+      type: [string, 'null']
+    contactChannel:
+      anyOf:
+        - type: 'null'
+        - $ref: './optimal-card.yaml#/ContactChannel'
+    contactUrl:
+      type: [string, 'null']
+    contactAdminEntered:
+      type: boolean
+    contactEnteredAt:
+      type: [string, 'null']
+      format: date-time
+    productAttributes:
+      type: object
+      additionalProperties:
+        $ref: './optimal-card.yaml#/AttributeValue'
+    reasonNote:
+      type: [string, 'null']
+      description: Внутренняя заметка. Клиенту не отдаётся.
+    categoryReview:
+      $ref: '#/DossierReviewDecision'
+    offerReview:
+      $ref: '#/DossierReviewDecision'
+    supplierReview:
+      $ref: '#/DossierReviewDecision'
+    reviewNote:
+      type: [string, 'null']
+      description: Комментарий к последнему review. Внутренний.
+    matchText:
+      type: [string, 'null']
+      description: Нормализованный текст для похожего совпадения кэша.
+    publicReport:
+      anyOf:
+        - $ref: '#/SafeDossierReportBody'
+        - type: 'null'
+      description: Безопасный отчёт, который увидит клиент после публикации.
+    markedLiveByUserId:
+      type: [string, 'null']
+      format: uuid
+    markedLiveAt:
+      type: [string, 'null']
+      format: date-time
+    revalidateAt:
+      type: [string, 'null']
+      format: date-time
+      description: Срок перепроверки. При публикации по умолчанию 30 дней.
+    expiresAt:
+      type: [string, 'null']
+      format: date-time
+      description: До этой даты кэш отдаётся. Совпадает с revalidateAt при публикации.
+    createdAt:
+      type: string
+      format: date-time
+    updatedAt:
+      type: [string, 'null']
+      format: date-time
+
+CreateDossierRequest:
+  type: object
+  additionalProperties: false
+  required: [categoryId, qtyMin, qtyMax, quantityQuestionId, productAttributes]
+  description: >
+    Черновик утверждённого досье. Заявка сюда не смешивается.
+    isLive по умолчанию false — публикация отдельной ручкой.
+  properties:
+    categoryId:
+      type: string
+      format: uuid
+    offerId:
+      type: [string, 'null']
+      format: uuid
+    canonicalProductId:
+      type: [string, 'null']
+      format: uuid
+    nameRu:
+      type: string
+      minLength: 1
+      maxLength: 512
+    nameZh:
+      type: [string, 'null']
+      maxLength: 512
+    qtyMin:
+      type: number
+      minimum: 0
+    qtyMax:
+      type: number
+      minimum: 0
+    quantityQuestionId:
+      type: string
+      format: uuid
+    productAttributes:
+      type: object
+      additionalProperties:
+        $ref: './optimal-card.yaml#/AttributeValue'
+    price:
+      type: [number, 'null']
+      minimum: 0
+    currency:
+      type: [string, 'null']
+      minLength: 3
+      maxLength: 3
+    contactValue:
+      type: [string, 'null']
+      maxLength: 512
+    contactChannel:
+      anyOf:
+        - type: 'null'
+        - $ref: './optimal-card.yaml#/ContactChannel'
+    contactUrl:
+      type: [string, 'null']
+      maxLength: 2048
+    contactAdminEntered:
+      type: boolean
+    reasonNote:
+      type: [string, 'null']
+    matchText:
+      type: [string, 'null']
+      maxLength: 1024
+      description: Текст для похожего кэша. Пусто — берётся nameRu.
+    publicReport:
+      anyOf:
+        - $ref: '#/SafeDossierReportBody'
+        - type: 'null'
+
+UpdateDossierRequest:
+  type: object
+  additionalProperties: false
+  description: Пустые поля не меняют досье.
+  properties:
+    canonicalProductId:
+      type: [string, 'null']
+      format: uuid
+    nameRu:
+      type: string
+      minLength: 1
+      maxLength: 512
+    nameZh:
+      type: [string, 'null']
+      maxLength: 512
+    qtyMin:
+      type: number
+      minimum: 0
+    qtyMax:
+      type: number
+      minimum: 0
+    quantityQuestionId:
+      type: string
+      format: uuid
+    productAttributes:
+      type: object
+      additionalProperties:
+        $ref: './optimal-card.yaml#/AttributeValue'
+    price:
+      type: [number, 'null']
+      minimum: 0
+    currency:
+      type: [string, 'null']
+      minLength: 3
+      maxLength: 3
+    contactValue:
+      type: [string, 'null']
+      maxLength: 512
+    contactChannel:
+      anyOf:
+        - type: 'null'
+        - $ref: './optimal-card.yaml#/ContactChannel'
+    contactUrl:
+      type: [string, 'null']
+      maxLength: 2048
+    contactAdminEntered:
+      type: boolean
+    reasonNote:
+      type: [string, 'null']
+    matchText:
+      type: [string, 'null']
+      maxLength: 1024
+    publicReport:
+      anyOf:
+        - $ref: '#/SafeDossierReportBody'
+        - type: 'null'
+
+ReviewDossierRequest:
+  type: object
+  additionalProperties: false
+  required: [target, decision]
+  description: Подтверждение или отклонение категории, оффера или поставщика.
+  properties:
+    target:
+      $ref: '#/DossierReviewTarget'
+    decision:
+      $ref: '#/DossierReviewDecision'
+      description: pending сбрасывает решение. approved или rejected — итог.
+    note:
+      type: [string, 'null']
+      maxLength: 4000
+      description: Внутренний комментарий. Клиенту не отдаётся.
+
+PublishDossierRequest:
+  type: object
+  additionalProperties: false
+  description: >
+    Публикует живое досье. Категория, оффер и поставщик должны быть approved.
+    Нужен publicReport без контактов. Срок перепроверки по умолчанию 30 дней.
+  properties:
+    revalidateAt:
+      type: [string, 'null']
+      format: date-time
+      description: Пусто или null — сейчас + 30 дней.
+    publicReport:
+      anyOf:
+        - $ref: '#/SafeDossierReportBody'
+        - type: 'null'
+      description: Если задан, заменяет сохранённый безопасный отчёт перед публикацией.

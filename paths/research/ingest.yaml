@@ -6,11 +6,12 @@ ingest:
     description: >
       Авторизация: Bearer RESEARCH_INGEST_TOKEN, сравнение через crypto.timingSafeEqual.
       Токен админки этот вход не открывает.
-      Тот же run_id и то же тело → 200 и duplicate=true, строки не пишутся.
+      Повтор с тем же payload sha256 → 200 и duplicate=true, второй прогон не создаётся.
       Тот же run_id и другое тело → 409 RUN_ID_REUSED.
       Оффер без source_url или без quote и контакт без source_url попадают в discarded, остальное пишется.
       status=partial и status=failed принимаются. Компания с уже известным USCC обновляется, а не даёт 409.
       Успех переводит заявку в DOSSIER_WITH_ADMIN. Цены клиенту не отдаются.
+      Живой webhook Grok этим пакетом не обещается: приёмка — фикстурами.
     security:
       - researchIngestToken: []
     requestBody:

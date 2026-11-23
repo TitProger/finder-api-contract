@@ -1,0 +1,86 @@
+list:
+  get:
+    operationId: listTaxonomyNodes
+    security:
+      - bearerAuth: []
+    tags: [taxonomy]
+    summary: Поиск узлов таксономии
+    description: >
+      Только ADMIN. Поиск и страница по дереву Wikkeo.
+      Клиентский поиск пути — отдельная публичная ручка.
+    parameters:
+      - $ref: '../../components/parameters/common.yaml#/PageQuery'
+      - $ref: '../../components/parameters/common.yaml#/LimitQuery'
+      - name: q
+        in: query
+        required: false
+        description: Поиск по имени или pathLabel.
+        schema:
+          type: string
+          maxLength: 200
+      - name: parentId
+        in: query
+        required: false
+        description: Только прямые дети этого узла. Без параметра — без фильтра по родителю.
+        schema:
+          type: integer
+    responses:
+      '200':
+        description: Страница узлов
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '../../components/schemas/common.yaml#/ApiResponse'
+                - type: object
+                  properties:
+                    data:
+                      type: array
+                      items:
+                        $ref: '../../components/schemas/taxonomy/taxonomy-node.yaml#/TaxonomyNode'
+                    page:
+                      $ref: '../../components/schemas/common.yaml#/PageInfo'
+      '400':
+        $ref: '../../components/responses/errors.yaml#/BadRequest'
+      '500':
+        $ref: '../../components/responses/errors.yaml#/InternalError'
+
+byId:
+  patch:
+    operationId: updateTaxonomyNode
+    security:
+      - bearerAuth: []
+    tags: [taxonomy]
+    summary: Править узел таксономии
+    description: Только ADMIN. Меняет имя, slug, признак скрытия или url. Id и родителя не трогает.
+    parameters:
+      - name: nodeId
+        in: path
+        required: true
+        description: Id узла Wikkeo.
+        schema:
+          type: integer
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../../components/schemas/taxonomy/taxonomy-node.yaml#/UpdateTaxonomyNodeRequest'
+    responses:
+      '200':
+        description: Обновлённый узел
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '../../components/schemas/common.yaml#/ApiResponse'
+                - type: object
+                  properties:
+                    data:
+                      $ref: '../../components/schemas/taxonomy/taxonomy-node.yaml#/TaxonomyNode'
+      '400':
+        $ref: '../../components/responses/errors.yaml#/BadRequest'
+      '404':
+        $ref: '../../components/responses/errors.yaml#/NotFound'
+      '500':
+        $ref: '../../components/responses/errors.yaml#/InternalError'
